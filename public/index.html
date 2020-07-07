@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+    integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+
+  <link rel="stylesheet" href="css/skeleton.css" />
+  <link rel="stylesheet" href="css/normalize.css" />
+  <link rel="stylesheet" href="css/home.css" />
+  <title>CAHO</title>
+</head>
+
+<body>
+  <div class="body-container">
+    <header class="container-header">
+      <h1>Cards Against Humanity Online</h1>
+    </header>
+    <main class="home-main">
+
+      <div class="form-control" id="join-form">
+        <form id="join-form" action="game.html">
+          <span class="stylized">My name is </span>
+          <input type="text" name="username-join" id="username-join" placeholder="" maxlength="20" required autocomplete="off"/>
+          <span class="stylized">,</span>
+          <br>
+          <span class="stylized">and I want to join </span>
+          <input type="text" name="roomid" id="roomid" placeholder="" maxlength="8" required />
+          <span class="stylized">.</span>
+          <div class="wrapper">
+            <button class="buttonhome" id="join-button" type="button">Join a session</button>
+          </div>
+        </form>
+      </div>
+
+      <h4>OR</h4>
+
+      <div class="form-control" id="create-form">
+        <form id="create-form" action="">
+          <span class="stylized">My name is </span>
+          <input type="text" name="username-create" id="username-create" placeholder="" maxlength="20" required autocomplete="off"/>
+          <span class="stylized">.</span>
+          <div class="wrapper">
+            <button class="buttonhome" id="create-button" type="button">Create a session</button>
+          </div>
+        </form>
+      </div>
+
+      
+
+    </main>
+    </main>
+  </div>
+  <script src="js/home.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+    integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/skeleton.css" />
+  <link rel="stylesheet" href="css/normalize.css" />
+  <link rel="stylesheet" href="css/game.css" />
+  <link rel="stylesheet" href="css/home.css" />
+
+  <title>CAHO</title>
+</head>
+
+<body>
+  <div class="game-header">
+      <h1 class="header-h1">Cards Against Humanity Online</h1>
+    <div class="header-right">
+      <a href="index.html" class="buttonhome">Start-Game</a>
+      <a href="index.html" class="buttonhome">Leave Room</a>
+    </div>
+  </div>
+  <div class="game-wrapper">
+
+    <div class="game-container">
+      <div class="room-info-container">
+        <h3><u>Room ID</u></h3>
+        <h3><span id="roomIDSpan">asfasfasf</span></h3>
+        <h3><i class="fas fa-users"></i> Users</h3>
+
+        <div class="users-container">
+          <ul id="users">
+            <li>AAA <span class="score"></span></li>
+            <li>AAA <span class="score"></span></li>
+            <li>AAA <span class="score"></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card-container">
+        <div class="black-card">
+          <div class="black-card-text">
+            <p id="black-card-text">This is placeholder text. I <span style="text-decoration: underline; white-space: pre;">                   </span> this looks right as it is</p>
+          </div>
+        </div>
+        <div class="white-cards">
+          <div class="czar-info">
+              <p>Card Czar: <span id="current-czar"></span></p> 
+          </div>
+          <div class="user-cards">
+            <table id="user-cards-table">
+              <tr>
+                <td>
+                  <input type="checkbox"/>  My name is Shreyans.
+                </td>
+                <td>
+                  <input type="checkbox"/> <span class="card-option"></span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+              </tr><tr>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+              </tr><tr>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+                <td>
+                  <input type="checkbox"/>
+                </td>
+              </tr><tr>
+                <td>
+                  <input type="checkbox"/>  
+                </td>
+                 <td>
+                  <input type="checkbox"/>
+                </td> 
+              </tr>
+            </table>
+            <div class="wrapper">
+              <button class="buttonhome">Submit Answer(s)</button>
+            </div>
+            <div class="wrapper">
+              <button class="buttonhome">Leaderboard</button>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages-container">
+        <div class="message">
+          <p class="meta">Brad <span class="time-span">9:12pm</span></p>
+          <p class="text-message">
+            Lorem ipsum dolor sit <u>amet consectetur</u> adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+        <div class="message">
+          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
+          <p class="text-message">
+            Lorem ipsum dolor sit <i>amet consectetur</i> adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+        <div class="message">
+          <p class="meta">カホーちゃん <span class="time-span">9:12pm</span></p>
+          <p class="text-message">
+            Lorem ipsum カホーちゃん dolor sit <strong>amet consectetur</strong> adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+        <div class="message">
+          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
+          <p class="text-message">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+        <div class="message">
+          <p class="meta">Brad <span class="time-span">9:12pm</span></p>
+          <p class="text-message">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+        <div class="message">
+          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
+          <p class="text-message">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
+            repudiandae.
+          </p>
+          <hr>
+        </div>
+      </div>
+      <div class="chat-form-container">
+        <form id="chat-form">
+          <input id="msg" type="text" placeholder="Enter Message" required autocomplete="off" />
+          <button class="sendButton"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js"
+    integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w=="
+    crossorigin="anonymous"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
