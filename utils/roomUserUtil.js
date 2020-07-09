@@ -8,26 +8,35 @@ var roomID = function () {
   return '' + Math.random().toString(36).substr(2, 8);
 };
 
-function getAllRooms() {
-  return rooms;
-}
-
-function getAllUsers() {
-  return users;
-}
-
+/**
+ * Create and push a new room object
+ * @param {string} creatingUser 
+ * @returns a room object
+ */
 function createRoom(creatingUser) {
-  return {
+  const room = {
     roomID: roomID(),
     creatingUser: creatingUser,
     roomUsers: []
-  }
+  };
+
+  addRoom(room);
+  return room;
 }
 
+/**
+ * Alias array push method for readability
+ * @param {Object} room 
+ */
 function addRoom(room) {
-  rooms.push(room);
+  rooms.push(room)
 }
 
+/**
+ * Try to remove a room from the current array of rooms
+ * with a given room ID, occurs when room is empty
+ * @param {string} roomID 
+ */
 function removeRoom(roomID) {
   const index = rooms.findIndex(room => room.roomID === roomID);
 
@@ -36,11 +45,46 @@ function removeRoom(roomID) {
   }
 }
 
+/**
+ * Create and return a user object
+ * @param {string} id 
+ * @param {string} username 
+ * @param {string} roomID 
+ */
 function createUser (id, username, roomID) {
   return {
     id,
     username,
     roomID
+  }
+}
+
+function getAllUsers() {
+  return users;
+}
+
+function getUserByUsername(username) {
+  return users.find(user => user.username === username);
+}
+
+function getUserByID(id) {
+  return users.find(user => user.id == id);
+}
+
+function getAllRooms() {
+  return rooms;
+}
+
+function getRoomByID(roomID) {
+  return rooms.find(room => room.roomID === roomID);
+}
+
+function getRoomUsers(roomID) {
+  const res = rooms.find(room => room.roomID === roomID);
+  if (res) {
+    return res.roomUsers;
+  } else {
+    return 'NO ROOM';
   }
 }
 
@@ -55,23 +99,6 @@ function userJoin (roomID, id, username) {
   } else {
     return undefined;
   }
-}
-
-// function getRoomByUserID(userID) {
-//   const index = rooms.findIndex(room => {
-//     room.roomUsers.find(user => user.id === userID) != undefined;
-//   });
-
-//   if (index != -1) {
-//     return rooms
-//   }
-//   return rooms.find(room => {
-//     room.roomUsers.find(user => user.id === userID) != undefined;
-//   })
-// }
-
-function getUserByID(id) {
-  return users.find(user => user.id == id);
 }
 
 function userLeave (id) {
@@ -91,27 +118,16 @@ function userLeave (id) {
   }
 }
 
-function getRoomUsers(roomID) {
-  // console.log(roomID);
-  const res = rooms.find(room => room.roomID === roomID);
-  if (res) {
-    return res.roomUsers;
-  } else {
-    return 'NO ROOM';
-  }
-}
-
-
-
 module.exports = {
-  getAllRooms,
   createRoom,
   addRoom,
-  // removeRoom,
-  // createUser,
-  userJoin,
+  removeRoom,
+  getAllUsers,
   getUserByID,
-  userLeave,
-  getRoomUsers
-  // getRoomByUserID
+  getUserByUsername,
+  getAllRooms,
+  getRoomByID,
+  getRoomUsers,
+  userJoin,
+  userLeave
 }

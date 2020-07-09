@@ -1,11 +1,16 @@
 const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector('.chat-messages-container');
+const startButton = document.getElementById('start-game-button');
 
 const socket = io();
 
 const {username, roomID} = Qs.parse(location.search, {
   ignoreQueryPrefix: true
-})
+});
+console.log(username);
+
+console.log(roomID);
+
 
 socket.emit('joinRoom', {username, roomID});
 
@@ -31,6 +36,26 @@ chatForm.addEventListener('submit', (e) => {
   socket.emit('chatMessage', message);
   e.target.elements.msg.value = '';
   e.target.elements.msg.focus();
+});
+
+startButton.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  fetch('/startGame', {
+    method: 'post',
+    body: 'username='+username,
+    headers: { 'Content-type': 'application/x-www-form-urlencoded' },
+  })
+  .then(res => res.text())
+  .then(text => {
+    if (text !== 'ERR' && text !== 'INVALID USER') {
+      alert('Game starting');
+    } else if (text === 'INVALID USER') {
+      alert('Only the host may start the game');
+    } else {
+      alert('Apologies, an unknown error occurred.');
+    }
+  });
 })
 
 function outputMessageToDOM(message) {
@@ -44,7 +69,7 @@ function outputMessageToDOM(message) {
   chatMessages.appendChild(div);
 }
 
-function outputRoomNametoDOM(room) {
+function outputRoomNametoDOM(roomID) {
   document.getElementById("roomIDSpan").innerText = roomID;
 }
 
