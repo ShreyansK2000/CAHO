@@ -116,9 +116,6 @@ app.post('/startGame', function (req, res) {
       const newGame = new Game(userRoom, io);
       gamesInSession.push(newGame);
       newGame.addServerRef();
-      // TODO game start logic
-      // const game = new Game(userRoom);
-
       /* Some random assign by reference testing */
       // console.log('Creating User: ' + game.room.creatingUser);
       // userRoom.creatingUser = 'asdhasd';

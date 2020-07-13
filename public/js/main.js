@@ -88,6 +88,7 @@ submitResponsesButton.addEventListener('click', () => {
               cardOptionArray[index].innerHTML = '';
               item.checked = false;
             }
+            submissionResponses.length = 0;
           });
         } else{
           alert('Apologies, an unknown error occurred. Please try and submit again');
