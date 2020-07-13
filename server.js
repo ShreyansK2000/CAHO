@@ -8,7 +8,8 @@ const socketio = require('socket.io');
 /* User created modules */
 const formatMessage = require('./utils/messages');
 const roomUserUtil = require('./utils/roomUserUtil');
-const gameExport = require('./utils/game')
+const gameExport = require('./utils/game');
+const { gameState } = require('./utils/game');
 let Game = gameExport.Game;
 const gamesInSession = gameExport.gamesInSession;
 
@@ -29,6 +30,7 @@ io.on('connection', socket => {
     const user = roomUserUtil.userJoin(roomID, socket.id, username);
     if (user) {
       socket.join(user.roomID);
+      // user.socket = socket;
 
       // Welcome current user
       socket.emit('message', formatMessage(botName, 
@@ -44,6 +46,15 @@ io.on('connection', socket => {
     }
   })
   
+  socket.on('submissionResponses', (data, callback) => {
+    gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
+    if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
+      callback(false);
+    } else {
+      callback(data.payload);
+      gameSession.dealWhiteCards();
+    }
+  });
 
   // Listen for chat message
   socket.on('chatMessage', (e) => {
@@ -74,7 +85,9 @@ app.post('/joinRoom', function (req, res) {
   const username = req.body['username-join'];
   const room = roomUserUtil.getRoomByID(req.body['roomid']);
   if (room === undefined) {
-    res.set('ERR');
+    res.set('ERR_NO_ROOM');
+  } else if (room.roomUsers.find(user => user.username === username)) {
+    res.send('ERR_DUPLICATE_USER');
   } else {
     let resString = 'username=' + username + '&roomID=' + room.roomID;
     res.send(resString);

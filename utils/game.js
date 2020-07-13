@@ -12,9 +12,6 @@ const gameState = {
   END_GAME: 'end-game'
 }
 const jsondata = require('./test.json');
-const {
-  json
-} = require('body-parser');
 // const { json } = require('body-parser');
 
 const reqCards = 10;
@@ -32,13 +29,13 @@ class Game {
 
     this.ioRef = io;
     this.room = room;
-    console.log(this.room);
+    // console.log(this.room);
 
     this.currentCzar = room.creatingUser;
     this.currentBlackCard = null;
     this.state = gameState.PRE_START;
     this.numWhiteCards = 0;
-
+    this.gameState = gameState.AWAIT_RESPONSES;
   }
 
   /**
@@ -48,9 +45,10 @@ class Game {
    * @param {string} roomID 
    */
   addServerRef() {
-    this.emitBlackCard(jsondata.blackCards[13].text);
+    this.emitBlackCard(jsondata.blackCards[13]);
     this.dealWhiteCards();
     this.setNewCzar(this.currentCzar);
+    // this.attachSubmissionListeners();
   }
 
   /**
@@ -64,26 +62,49 @@ class Game {
   dealWhiteCards() {
     if (this.numWhiteCards < reqCards) {
       const cardsToDeal = reqCards - this.numWhiteCards;
-      const playersToDeal = (cardsToDeal == reqCards) ?
-        this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
+      const playersToDeal = this.getRoundPlayers(cardsToDeal == reqCards);
 
       playersToDeal.forEach(player => {
         let id = player.id;
         this.ioRef.in(id).clients((err, clients) => {
           if (clients.length > 0 && err == null) {
             let whiteCardIndices = [];
+            
             for (let i = 0; i < cardsToDeal; i++) {
-              whiteCardIndices.push(getRandomIndex(maxWhiteCards));
+              whiteCardIndices.push(getRandomIndex(maxWhiteCards - 1));
             }
 
             let whiteCardsToSend = whiteCardIndices.map(index => jsondata.whiteCards[index]);
-            // console.log(whiteCardIndices);
-            // console.log(whiteCardsToSend);
             this.ioRef.to(id).emit('newWhiteCards', whiteCardsToSend);
           }
         });
       });
     }
+  }
+
+  // attachSubmissionListeners () {
+  //   const awaitingResponsesFrom = this.getRoundPlayers(false);
+  //   awaitingResponsesFrom.forEach(player => {
+  //     let id = player.id;
+  //     this.ioRef.in(id).clients((err, clients) => {
+  //       if (clients.length > 0 && err == null) {
+  //         player.socket.on('submissionResponses ', (data, callback) => {
+  //           if(this.gameState === gameState.AWAIT_RESPONSES) {
+  //             console.log(`received response from user ${player.username}`, data.payload)
+  //             callback(true);
+  //           } else {
+  //             callback(false);
+  //           }
+  //           console.log(data.payload);
+  //           callback(data.payload);
+  //         });
+  //       }
+  //     });
+  //   });
+  // }
+
+  getRoundPlayers (condition) {
+    return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
   }
 
   setNewCzar(czarName) {

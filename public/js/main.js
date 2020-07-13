@@ -25,13 +25,15 @@ socket.on('roomUsers', ({roomID, users}) => {
 socket.on('blackCard', ({text, pick}) => {
   outputBlackCard(text);
   document.getElementById('pick-number').innerText = '' + pick;
+  reqPicks = pick;
 })
 
 socket.on('newWhiteCards', arr => {
+  console.log(arr);
   let i = 0;
   cardOptionArray.forEach(span => {
     if (span.innerText === '') {
-      span.innerText = arr[i];
+      span.innerHTML = arr[i];
       i++;
     }
   });   
@@ -54,6 +56,7 @@ checkboxInputArray.forEach((input, index) => {
         submissionResponses.push(cardOptionArray[index].innerText);
       } else {
         alert('You cannot pick any more cards.');
+        this.checked = false;
       }
     } else {
       let idx = submissionResponses.indexOf(cardOptionArray[index].innerText);
@@ -63,6 +66,8 @@ checkboxInputArray.forEach((input, index) => {
         alert('Apologies, an unknown error has occurred');
       }
     }
+
+    console.log(submissionResponses);
   });
 });
 
@@ -71,10 +76,19 @@ submitResponsesButton.addEventListener('click', () => {
     alert('There are no responses to submit!');
   } else if (submissionResponses.length === reqPicks) {
     socket.emit('submissionResponses', 
-      { payload : submissionResponses }, 
+      { 
+        payload : submissionResponses,
+        roomID: roomID
+      }, 
       function (responsedata) {
         if (responsedata) {
           alert('Responses submitted');
+          checkboxInputArray.forEach((item, index) => {
+            if (item.checked) {
+              cardOptionArray[index].innerHTML = '';
+              item.checked = false;
+            }
+          });
         } else{
           alert('Apologies, an unknown error occurred. Please try and submit again');
         }
