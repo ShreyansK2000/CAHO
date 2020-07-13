@@ -106,7 +106,13 @@
 
 .czar-info {
   padding: 20px;
+  padding-bottom: 0px;
   font-size: 30px;
+}
+
+.pick-info {
+  padding-left: 20px;
+  font-size: 20px;
 }
 
 #black-card-text {
@@ -192,9 +198,10 @@
 }
 
 #user-cards-table {
-  margin: 15px;
+  margin: auto;
+  margin-bottom: 20px;
   table-layout: fixed;
-  width: auto;
+  width: 85%;
   border-collapse: collapse;
   border: 1 px black solid;
   max-height: 60%;

@@ -8,6 +8,9 @@ const socketio = require('socket.io');
 /* User created modules */
 const formatMessage = require('./utils/messages');
 const roomUserUtil = require('./utils/roomUserUtil');
+const gameExport = require('./utils/game')
+let Game = gameExport.Game;
+const gamesInSession = gameExport.gamesInSession;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true })); 
@@ -91,11 +94,22 @@ app.post('/startGame', function (req, res) {
   const user = roomUserUtil.getUserByUsername(username);
   let resString;
   if (user !== undefined) {
-    if (roomUserUtil.getRoomByID(user.roomID).creatingUser !== username ) {
+    const userRoom = roomUserUtil.getRoomByID(user.roomID);
+    if (userRoom.creatingUser !== username) {
       resString = 'INVALID USER';
     } else {
       resString = 'OK'
+      console.log(userRoom);
+      const newGame = new Game(userRoom, io);
+      gamesInSession.push(newGame);
+      newGame.addServerRef();
       // TODO game start logic
+      // const game = new Game(userRoom);
+
+      /* Some random assign by reference testing */
+      // console.log('Creating User: ' + game.room.creatingUser);
+      // userRoom.creatingUser = 'asdhasd';
+      // console.log('Creating User: ' + game.room.creatingUser);
     }
   }
   else {

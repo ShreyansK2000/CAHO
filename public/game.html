@@ -38,58 +38,61 @@
       <div class="card-container">
         <div class="black-card">
           <div class="black-card-text">
-            <p id="black-card-text">This is placeholder text. I <span style="text-decoration: underline; white-space: pre;">                   </span> this looks right as it is</p>
+            <p id="black-card-text"></p>
           </div>
         </div>
         <div class="white-cards">
           <div class="czar-info">
               <p>Card Czar: <span id="current-czar"></span></p> 
           </div>
+          <div class="pick-info">
+            <p>Pick <span id="pick-number">no</span> card(s).</p> 
+          </div>
           <div class="user-cards">
             <table id="user-cards-table">
               <tr>
                 <td>
-                  <input type="checkbox"/>  My name is Shreyans.
+                  <input type="checkbox" id="input-0"/> <span id="card-0"></span>
                 </td>
                 <td>
-                  <input type="checkbox"/> <span class="card-option"></span>
+                  <input type="checkbox" id="input-1"/> <span id="card-1"></span>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <input type="checkbox"/>  
+                  <input type="checkbox" id="input-2"/> <span id="card-2"></span>
                 </td>
                 <td>
-                  <input type="checkbox"/>  
-                </td>
-              </tr><tr>
-                <td>
-                  <input type="checkbox"/>  
-                </td>
-                <td>
-                  <input type="checkbox"/>  
+                  <input type="checkbox" id="input-3"/> <span id="card-3"></span>
                 </td>
               </tr><tr>
                 <td>
-                  <input type="checkbox"/>  
+                  <input type="checkbox" id="input-4"/> <span id="card-4"></span>
                 </td>
                 <td>
-                  <input type="checkbox"/>
+                  <input type="checkbox" id="input-5"/> <span id="card-5"></span>
                 </td>
               </tr><tr>
                 <td>
-                  <input type="checkbox"/>  
+                  <input type="checkbox" id="input-6"/> <span id="card-6"></span>
+                </td>
+                <td>
+                  <input type="checkbox" id="input-7"/> <span id="card-7"></span>
+                </td>
+              </tr><tr>
+                <td>
+                  <input type="checkbox" id="input-8"/> <span id="card-8"></span>
                 </td>
                  <td>
-                  <input type="checkbox"/>
+                  <input type="checkbox" id="input-9"/> <span id="card-9"></span>
                 </td> 
               </tr>
             </table>
             <div class="wrapper">
-              <button class="buttonhome">Submit Answer(s)</button>
+              <button class="buttonhome" id="submit-responses-button">Submit Answer(s)</button>
             </div>
             <div class="wrapper">
-              <button class="buttonhome">Leaderboard</button>
+              <button class="buttonhome" id="leaderboard-button">Leaderboard</button>
             </div>
           </div>
         </div>
@@ -98,56 +101,7 @@
       </div>
     </div>
     <div class="chat-container">
-      <div class="chat-messages-container">
-        <div class="message">
-          <!-- <p class="meta">Brad <span class="time-span">9:12pm</span></p>
-          <p class="text-message">
-            Lorem ipsum dolor sit <u>amet consectetur</u> adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div>
-        <div class="message">
-          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
-          <p class="text-message">
-            Lorem ipsum dolor sit <i>amet consectetur</i> adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div>
-        <div class="message">
-          <p class="meta">カホーちゃん <span class="time-span">9:12pm</span></p>
-          <p class="text-message">
-            Lorem ipsum カホーちゃん dolor sit <strong>amet consectetur</strong> adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div>
-        <div class="message">
-          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
-          <p class="text-message">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div>
-        <div class="message">
-          <p class="meta">Brad <span class="time-span">9:12pm</span></p>
-          <p class="text-message">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div>
-        <div class="message">
-          <p class="meta">Mary <span class="time-span">9:15pm</span></p>
-          <p class="text-message">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi,
-            repudiandae.
-          </p>
-          <hr>
-        </div> -->
-      </div>
+      <div class="chat-messages-container"></div>
       <div class="chat-form-container">
         <form id="chat-form">
           <input id="msg" type="text" placeholder="Enter Message" required autocomplete="off" />
@@ -157,9 +111,11 @@
     </div>
   </div>
 
+  <!-- URL Query Param Parsing Library source -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js"
     integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w=="
     crossorigin="anonymous"></script>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/main.js"></script>
 </body>

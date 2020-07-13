@@ -1,0 +1,89 @@
+{
+    "blackCards": [{
+        "text": "Why can't I sleep at night?",
+        "pick": 1
+    }, {
+        "text": "I got 99 problems but _ ain't one.",
+        "pick": 1
+    }, {
+        "text": "What's a girl's best friend?",
+        "pick": 1
+    }, {
+        "text": "What's that smell?",
+        "pick": 1
+    }, {
+        "text": "This is the way the world ends \/ This is the way the world ends \/ Not with a bang but with _.",
+        "pick": 1
+    }, {
+        "text": "What is Batman's guilty pleasure?",
+        "pick": 1
+    }, {
+        "text": "TSA guidelines now prohibit _ on airplanes.",
+        "pick": 1
+    }, {
+        "text": "What ended my last relationship?",
+        "pick": 1
+    }, {
+        "text": "MTV's new reality show features eight washed-up celebrities living with _.",
+        "pick": 1
+    }, {
+        "text": "I drink to forget _.",
+        "pick": 1
+    }, {
+        "text": "I'm sorry, Professor, but I couldn't complete my homework because of _.",
+        "pick": 1
+    }, {
+        "text": "Alternative medicine is now embracing the curative powers of _.",
+        "pick": 1
+    }, {
+        "text": "What's that sound?",
+        "pick": 1
+    }, {
+        "text": "What's the next Happy Meal&reg; toy?",
+        "pick": 1
+    }, {
+        "text": "By 2019, _ will be outnumbered by _.",
+        "pick": 2
+    }, {
+        "text": "The past is a foreign country... with _ and _!",
+        "pick": 2
+    }, {
+        "text": "It's a pity that kids these days are all getting involved with _.",
+        "pick": 1
+    }],
+    "whiteCards": [
+        "Coat hanger abortions.", 
+        "Man meat.", 
+        "Autocannibalism.", 
+        "Vigorous jazz hands.", 
+        "Flightless birds.", 
+        "Pictures of boobs.", 
+        "Doing the right thing.", 
+        "The violation of our most basic human rights.", 
+        "Viagra&reg;.", 
+        "Self-loathing.", 
+        "Spectacular abs.", 
+        "A balanced breakfast.", 
+        "Roofies.", 
+        "Concealing a boner.", 
+        "Amputees.",
+        "The Big Bang.",
+        "Former President George W. Bush.", 
+        "The Rev. Dr. Martin Luther King, Jr.", 
+        "Smegma.", 
+        "Being marginalized.", 
+        "Cuddling.", 
+        "Laying an egg.", 
+        "The Pope.", 
+        "Aaron Burr.", 
+        "Genital piercings.", 
+        "Fingering.", 
+        "A bleached asshole.", 
+        "Horse meat.", 
+        "Fear itself.", 
+        "Science.", 
+        "Elderly Japanese men.", 
+        "Stranger danger.", 
+        "The terrorists."   
+    ]
+}

@@ -1,16 +1,19 @@
 const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector('.chat-messages-container');
 const startButton = document.getElementById('start-game-button');
+const checkboxInputArray = document.querySelectorAll("input[id^=input]");
+const cardOptionArray = document.querySelectorAll("span[id^=card]");
+const submitResponsesButton = document.getElementById('submit-responses-button');
+const leaderboardButton = document.getElementById('leaderboard-button');
+
+const submissionResponses = [];
 
 const socket = io();
+let reqPicks = 0;
 
 const {username, roomID} = Qs.parse(location.search, {
   ignoreQueryPrefix: true
 });
-console.log(username);
-
-console.log(roomID);
-
 
 socket.emit('joinRoom', {username, roomID});
 
@@ -19,11 +22,65 @@ socket.on('roomUsers', ({roomID, users}) => {
   outputUsers(users);
 });
 
+socket.on('blackCard', ({text, pick}) => {
+  outputBlackCard(text);
+  document.getElementById('pick-number').innerText = '' + pick;
+})
+
+socket.on('newWhiteCards', arr => {
+  let i = 0;
+  cardOptionArray.forEach(span => {
+    if (span.innerText === '') {
+      span.innerText = arr[i];
+      i++;
+    }
+  });   
+});
+
+socket.on('newCzar', czarName => {
+  document.getElementById("current-czar").innerText = czarName;
+})
+
 socket.on('message', (e) => {
   console.log(e);
   outputMessageToDOM(e);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 })
+
+checkboxInputArray.forEach((input, index) => {
+  input.addEventListener('change', function() {
+    if (this.checked) {
+      if (submissionResponses.length < reqPicks) {
+        submissionResponses.push(cardOptionArray[index].innerText);
+      } else {
+        alert('You cannot pick any more cards.');
+      }
+    } else {
+      let idx = submissionResponses.indexOf(cardOptionArray[index].innerText);
+      if (idx !== -1) {
+        submissionResponses.splice(idx, 1);
+      } else {
+        alert('Apologies, an unknown error has occurred');
+      }
+    }
+  });
+});
+
+submitResponsesButton.addEventListener('click', () => {
+  if (submissionResponses.length === 0) {
+    alert('There are no responses to submit!');
+  } else if (submissionResponses.length === reqPicks) {
+    socket.emit('submissionResponses', 
+      { payload : submissionResponses }, 
+      function (responsedata) {
+        if (responsedata) {
+          alert('Responses submitted');
+        } else{
+          alert('Apologies, an unknown error occurred. Please try and submit again');
+        }
+      });
+  }
+});
 
 // Message submit
 chatForm.addEventListener('submit', (e) => {
@@ -77,4 +134,9 @@ function outputUsers(users) {
   document.getElementById("users").innerHTML = `
     ${users.map(user => `<li>${user.username} <span class="score"></span></li>`).join('')}
   `;
+}
+
+function outputBlackCard(text) {
+  res = text.replace('_', '<span style="text-decoration: underline; white-space: pre;">                   </span>')
+  document.getElementById('black-card-text').innerHTML = res;
 }

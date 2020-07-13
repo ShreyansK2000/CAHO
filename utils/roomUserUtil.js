@@ -1,3 +1,6 @@
+let gameExport = require('./game');
+let Game = gameExport.Game;
+
 rooms = [];
 users = [];
 
