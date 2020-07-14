@@ -52,6 +52,7 @@ io.on('connection', socket => {
       callback(false);
     } else {
       callback(data.payload);
+      gameSession.gatherResponses(socket.id, data.payload);
       gameSession.dealWhiteCards();
     }
   });

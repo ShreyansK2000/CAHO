@@ -36,6 +36,8 @@ class Game {
     this.state = gameState.PRE_START;
     this.numWhiteCards = 0;
     this.gameState = gameState.AWAIT_RESPONSES;
+
+    this.currentRoundAnswers = [];
   }
 
   /**
@@ -82,26 +84,12 @@ class Game {
     }
   }
 
-  // attachSubmissionListeners () {
-  //   const awaitingResponsesFrom = this.getRoundPlayers(false);
-  //   awaitingResponsesFrom.forEach(player => {
-  //     let id = player.id;
-  //     this.ioRef.in(id).clients((err, clients) => {
-  //       if (clients.length > 0 && err == null) {
-  //         player.socket.on('submissionResponses ', (data, callback) => {
-  //           if(this.gameState === gameState.AWAIT_RESPONSES) {
-  //             console.log(`received response from user ${player.username}`, data.payload)
-  //             callback(true);
-  //           } else {
-  //             callback(false);
-  //           }
-  //           console.log(data.payload);
-  //           callback(data.payload);
-  //         });
-  //       }
-  //     });
-  //   });
-  // }
+  gatherResponses (userID, responseArr) {
+    this.currentRoundAnswers.push({
+      userID, 
+      responseArr
+    });
+  }
 
   getRoundPlayers (condition) {
     return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
