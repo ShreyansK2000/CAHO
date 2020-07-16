@@ -8,14 +8,11 @@ const socketio = require('socket.io');
 /* User created modules */
 const formatMessage = require('./utils/messages');
 const roomUserUtil = require('./utils/roomUserUtil');
-const gameExport = require('./utils/game');
-const { gameState } = require('./utils/game');
-let Game = gameExport.Game;
-const gamesInSession = gameExport.gamesInSession;
+const { gamesInSession, Game, gameState } = require('./utils/game');
 
+/* initialization */
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true })); 
-
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -46,13 +43,13 @@ io.on('connection', socket => {
     }
   })
   
-  socket.on('submissionResponses', (data, callback) => {
+  socket.on('submissionResponses', async (data, callback) => {
     gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
     if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
       callback(false);
     } else {
       callback(data.payload);
-      gameSession.gatherResponses(socket.id, data.payload);
+      await gameSession.gatherResponses(socket.id, data.payload);
       gameSession.dealWhiteCards();
     }
   });

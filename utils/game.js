@@ -1,3 +1,4 @@
+var EventEmitter = require('events');
 gamesInSession = [];
 /**
  * Game state enum
@@ -38,6 +39,8 @@ class Game {
     this.gameState = gameState.AWAIT_RESPONSES;
 
     this.currentRoundAnswers = [];
+
+    this.responsesEmitter = new EventEmitter();
   }
 
   /**
@@ -84,11 +87,38 @@ class Game {
     }
   }
 
-  gatherResponses (userID, responseArr) {
+  async waitResponses () {
+    let promise = new Promise((resolve) => {
+      console.log('in the promise')
+           
+      setTimeout(() => {
+        this.responsesEmitter.on('allResponsesReceived', () => {
+          console.log('resolved inside timout block');
+          resolve();
+        })
+      }, 60000);
+
+    });
+
+    await promise;
+    return;
+  }
+
+  async gatherResponses (userID, responseArr) {
     this.currentRoundAnswers.push({
       userID, 
       responseArr
     });
+
+    if (this.currentRoundAnswers.length == this.room.roomUsers.length - 1) {
+      this.responsesEmitter.emit('allResponsesReceived');
+      console.log('Emitted resolved, only remaining user');
+    } else {
+      await this.waitResponses();
+      console.log('resolved');
+    }
+    console.log('returning');
+
   }
 
   getRoundPlayers (condition) {
