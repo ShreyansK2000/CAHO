@@ -50,7 +50,7 @@ io.on('connection', socket => {
     } else {
       callback(data.payload);
       await gameSession.gatherResponses(socket.id, data.payload);
-      gameSession.dealWhiteCards();
+      // gameSession.dealWhiteCards();
     }
   });
 
@@ -107,21 +107,22 @@ app.post('/startGame', function (req, res) {
   if (user !== undefined) {
     const userRoom = roomUserUtil.getRoomByID(user.roomID);
     if (userRoom.creatingUser !== username) {
-      resString = 'INVALID USER';
+      resString = 'ERR_INVALID_USER';
     } else {
-      resString = 'OK'
-      console.log(userRoom);
-      const newGame = new Game(userRoom, io);
-      gamesInSession.push(newGame);
-      newGame.addServerRef();
-      /* Some random assign by reference testing */
-      // console.log('Creating User: ' + game.room.creatingUser);
-      // userRoom.creatingUser = 'asdhasd';
-      // console.log('Creating User: ' + game.room.creatingUser);
+      if (userRoom.roomUsers.length > 1) {
+        resString = 'RES_OK'
+        console.log(userRoom);
+        const newGame = new Game(userRoom, io);
+        gamesInSession.push(newGame);
+        newGame.addServerRef();
+      } else {
+        resString = 'ERR_ONLY_PLAYER'
+        console.log('not sending cards');
+      }
     }
   }
   else {
-    resString = 'ERR';
+    resString = 'ERR_UNDEFINED_USER';
   }
   
   res.send(resString);

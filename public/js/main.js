@@ -5,7 +5,28 @@ const checkboxInputArray = document.querySelectorAll("input[id^=input]");
 const cardOptionArray = document.querySelectorAll("span[id^=card]");
 const submitResponsesButton = document.getElementById('submit-responses-button');
 const leaderboardButton = document.getElementById('leaderboard-button');
+// const leaveButton = document.getElementById();
 
+/* Logic for the leaderboard dialog box (added before socket related stuff) */
+let leaderboardDialog = document.getElementById("responses-dialog");
+
+leaderboardButton.onclick = function() {
+  leaderboardDialog.style.display = "block";
+}
+
+window.onclick = function(event) {
+  if (event.target == leaderboardDialog) {
+    leaderboardDialog.style.display = "none";
+  }
+}
+
+let closeButton = document.getElementsByClassName("close")[0];
+closeButton.onclick = function() {
+  leaderboardDialog.style.display = "none";
+}
+
+
+// loadScoreTable();
 const submissionResponses = [];
 
 const socket = io();
@@ -53,7 +74,7 @@ socket.on('newWhiteCards', arr => {
 
 socket.on('newCzar', czarName => {
   curCzarName = czarName;
-  document.getElementById("current-czar").innerText = czarName;
+  document.getElementById("current-czar").innerText = czarName === username ? 'You' : czarName;
   if (czarName === username) {
     checkboxInputArray.forEach(input => {
       input.disabled = true;
@@ -63,6 +84,12 @@ socket.on('newCzar', czarName => {
       input.disabled = false;
     });
   }
+});
+
+socket.on('responsesToBlackCard', collectedResponses => {
+  console.log();
+
+  showResponsesDialog(collectedResponses);
 });
 
 socket.on('message', (e) => {
@@ -146,13 +173,21 @@ startButton.addEventListener('click', (e) => {
     })
     .then(res => res.text())
     .then(text => {
-      if (text !== 'ERR' && text !== 'INVALID USER') {
+      let resCode = text.substring(0, 2);
+      if (resCode !== 'ERR') {
         alert('Game starting');
-      } else if (text === 'INVALID USER') {
-        alert('Only the host may start the game');
       } else {
-        alert('Apologies, an unknown error occurred.');
-      }
+        let resType = text.substring(4);
+        if (resType === 'INVALID_USER') {
+          alert('Only the host may start the game');
+        } else if (resType === 'ONLY_PLAYER') {
+          alert('I"\'m sure you don\'t need the browser to say this, but this is not a solo game!');
+        } else if (resType = 'UNDEFINED_USER') {
+          alert('Apologies, there was an error fetching user information');
+        } else {
+          alert('Apologies, an unknown error has occurred');
+        }
+      } 
     });
 });
 
@@ -192,6 +227,40 @@ function outputUsers(users) {
   `;
 }
 
+function loadScoreTable(userScores) {
+  userScores.sort((a, b) => (a.score > b.score) ? 1 : -1)
+  
+  const tableBody = document.getElementById("leaderboard-table-body");
+  let innerHTMLData = '';
+
+  let rowidx = 1;
+
+  for (let userinfo of userScores) {
+    let tag = getImgTag(rowidx);
+    innerHTMLData += `<tr><td>${tag}</td><td>${userinfo.username}</td><td>${userinfo.score}</td></tr>`;
+    rowidx++;
+  }
+  tableBody.innerHTML = innerHTMLData;
+
+}
+
+function getImgTag(index) {
+  switch (index) {
+    case 1:
+      return '<img src="./img/trophygold.png" width="20" height="20"/>';
+      break;
+    case 2:
+      return '<img src="./img/trophysilver.png" width="20" height="20"/>'
+      break;
+    case 3:
+      return '<img src="./img/trophybronze.png" width="20" height="20"/>'
+      break;
+    default:
+      return ''
+      break;
+  }
+}
+
 /**
  * Outputs the current prompt (text) in the black-card area after adding
  * appropriate blanks where required
@@ -200,4 +269,8 @@ function outputUsers(users) {
 function outputBlackCard(text) {
   res = text.replace('_', '<span style="text-decoration: underline; white-space: pre;">                   </span>')
   document.getElementById('black-card-text').innerHTML = res;
+}
+
+function showResponsesDialog(responsesArr) {
+  
 }

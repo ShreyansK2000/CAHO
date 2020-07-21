@@ -41,6 +41,25 @@ class Game {
     this.currentRoundAnswers = [];
 
     this.responsesEmitter = new EventEmitter();
+
+    this.submitListener = function() {
+      console.log('Im here');
+
+      let czarID = this.room.roomUsers.find(user => user.username === this.currentCzar).id;
+      console.log(czarID)
+      this.ioRef.in(czarID).clients((err, clients) => {
+        console.log('inside clients callback')
+        console.log(clients.length);
+        console.log(err)
+        if (clients.length > 0 && err == null) {
+          console.log('inside if')
+          this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
+          this.dealWhiteCards();
+        }
+      });
+    }
+
+    this.responsesEmitter.addListener('allResponsesReceived', this.submitListener.bind(this));
   }
 
   /**
@@ -109,6 +128,8 @@ class Game {
       userID, 
       responseArr
     });
+
+    console.log(this.currentRoundAnswers)
 
     if (this.currentRoundAnswers.length == this.room.roomUsers.length - 1) {
       this.responsesEmitter.emit('allResponsesReceived');
