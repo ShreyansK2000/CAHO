@@ -54,6 +54,20 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('roundWinner', data => {
+    gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
+    // if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
+    //   callback(false);
+    // } else {
+    //   callback(data.payload);
+    //   await gameSession.gatherResponses(socket.id, data.payload);
+    //   // gameSession.dealWhiteCards();
+    // }
+
+    console.log(data.user);
+    console.log(data.userAns);
+  })
+
   // Listen for chat message
   socket.on('chatMessage', (e) => {
     const user = roomUserUtil.getUserByID(socket.id);

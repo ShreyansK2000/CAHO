@@ -5,6 +5,7 @@ const checkboxInputArray = document.querySelectorAll("input[id^=input]");
 const cardOptionArray = document.querySelectorAll("span[id^=card]");
 const submitResponsesButton = document.getElementById('submit-responses-button');
 const leaderboardButton = document.getElementById('leaderboard-button');
+const chooseAnswerButton = document.getElementById('choose-button');
 // const leaveButton = document.getElementById();
 
 /* Logic for the leaderboard dialog box (added before socket related stuff) */
@@ -27,6 +28,7 @@ closeButton.onclick = function() {
 
 
 // loadScoreTable();
+loadCollectedResponses();
 const submissionResponses = [];
 
 const socket = io();
@@ -191,6 +193,31 @@ startButton.addEventListener('click', (e) => {
     });
 });
 
+chooseAnswerButton.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const radioInputArray = document.querySelectorAll("input[id^=radio]");
+
+  let checkedInputIdx;
+  radioInputArray.forEach((input, index) => {
+    if(input.checked) {
+      checkedInputIdx = index;
+    }
+  });
+
+  // console.log(document.querySelectorAll("span[id^=userID]")[checkedInputIdx].textContent)
+  // console.log(document.querySelectorAll("span[id^=res]")[checkedInputIdx].textContent)
+
+  // let userSocketID = document.querySelectorAll("span[id^=userID]")[checkedInputIdx];
+  // let winningAnswer = document.querySelector("span[id^=res]")[checkedInputIdx];
+  let winnerObj = {
+    roomID: roomID,
+    user: document.querySelectorAll("span[id^=userID]")[checkedInputIdx].textContent,
+    userAns: document.querySelectorAll("span[id^=res]")[checkedInputIdx].textContent
+  }
+  socket.emit('roundWinner', winnerObj)
+});
+
 /* Helper functions to populate DOMs are required */
 
 /**
@@ -241,6 +268,57 @@ function loadScoreTable(userScores) {
     rowidx++;
   }
   tableBody.innerHTML = innerHTMLData;
+
+}
+
+function loadCollectedResponses() {
+  responses = [
+    {userID:"asdadasd", responseArr: ["&reg", "Bsdgsaghbarhbfadsbfbf"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["Adsfsfdasdfhbfdsa", "Bsadfsadfsfd"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+    {userID:"asdadasd", responseArr: ["A", "B"]},
+  ]
+
+  const tableBody = document.getElementById("responses-table-body");
+  let innerHTMLData = '';
+
+  let rowidx = 0;
+
+  for (let response of responses) {
+    let concatResponses = response.responseArr.join(", ");
+    innerHTMLData += 
+    `<tr>
+      <td>
+        <label><input type="radio" id="radio-${rowidx}" /></label><span class="hidden-user-id" style="display:none;" id="userID-${rowidx}">${response.userID}</span>
+      </td>
+      <td>
+        <span id="res-${rowidx}">${concatResponses}</span>
+      </td>
+    </tr>`;
+    rowidx++;
+  }
+  tableBody.innerHTML = innerHTMLData;
+
+  const radioInputArray = document.querySelectorAll("input[id^=radio]");
+  radioInputArray.forEach((input, index) => {
+    input.addEventListener('change', function() {
+      if (input.checked) {
+        let radioInputCopy = [...radioInputArray]
+        radioInputCopy.splice(index, 1);
+        radioInputCopy.forEach(input => {
+          input.checked = false;
+        });
+      }
+    }) 
+  });
 
 }
 

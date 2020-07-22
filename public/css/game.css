@@ -320,7 +320,7 @@
   overflow-x: hidden;
 }
 
-.leaderboard-content {
+.leaderboard-content, .responses-content {
   margin-top: 20px;
   font-size: 18px;
 }
@@ -333,6 +333,7 @@
   margin-top: 20px;
   overflow: auto;
   height: 400px;
+  max-width: 90%;
 }
 
 .leaderboard-table {
@@ -341,7 +342,7 @@
   border-collapse: collapse;
 }
 
-.leaderboard-table td, th {
+.leaderboard-table, .responses-table td, th {
   /* border:1px solid #ccc; */
   padding: 10px;
 }
