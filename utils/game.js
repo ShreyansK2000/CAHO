@@ -50,6 +50,7 @@ class Game {
         if (clients.length > 0 && err == null) {
           this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
           this.dealWhiteCards();
+          this.currentRoundAnswers = [];
         }
       });
     }
@@ -66,7 +67,8 @@ class Game {
   addServerRef() {
     this.emitBlackCard(jsondata.blackCards[13]);
     this.dealWhiteCards();
-    this.setNewCzar(this.currentCzar);
+    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+    // this.setNewCzar(this.currentCzar);
     // this.attachSubmissionListeners();
   }
 
@@ -141,8 +143,18 @@ class Game {
     return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
   }
 
-  setNewCzar(czarName) {
-    this.ioRef.to(this.room.roomID).emit('newCzar', czarName);
+  setNewCzar() {
+    let totalLength = this.room.roomUsers.length;
+    let newIdx = this.room.roomUsers.findIndex(user => user.username === this.currentCzar) + 1;
+
+    if (newIdx < totalLength) {
+      this.currentCzar = this.room.roomUsers[newIdx].username;
+    } else if (newIdx === totalLength) {
+      this.currentCzar = this.room.roomUsers[0].username;
+    }
+
+    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+
   }
 
   incrementScore (winnerObj) {
@@ -157,6 +169,7 @@ class Game {
 
   updateLocalScores() {
     this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
+    this.setNewCzar();
   }
 }
 
