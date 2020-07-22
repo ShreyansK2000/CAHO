@@ -43,16 +43,11 @@ class Game {
     this.responsesEmitter = new EventEmitter();
 
     this.submitListener = function() {
-      console.log('Im here');
 
       let czarID = this.room.roomUsers.find(user => user.username === this.currentCzar).id;
       console.log(czarID)
       this.ioRef.in(czarID).clients((err, clients) => {
-        console.log('inside clients callback')
-        console.log(clients.length);
-        console.log(err)
         if (clients.length > 0 && err == null) {
-          console.log('inside if')
           this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
           this.dealWhiteCards();
         }
@@ -148,6 +143,20 @@ class Game {
 
   setNewCzar(czarName) {
     this.ioRef.to(this.room.roomID).emit('newCzar', czarName);
+  }
+
+  incrementScore (winnerObj) {
+    let user = this.room.roomUsers.find(user => user.id === winnerObj.user)
+    user.score++;
+
+    let message = `${user.username} selected the best answer: ${winnerObj.userAns}`
+    this.ioRef.to(this.room.roomID).emit('winner', message);
+
+    this.updateLocalScores();
+  }
+
+  updateLocalScores() {
+    this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
   }
 }
 

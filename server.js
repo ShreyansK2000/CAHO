@@ -9,6 +9,7 @@ const socketio = require('socket.io');
 const formatMessage = require('./utils/messages');
 const roomUserUtil = require('./utils/roomUserUtil');
 const { gamesInSession, Game, gameState } = require('./utils/game');
+const game = require('./utils/game');
 
 /* initialization */
 const app = express();
@@ -66,6 +67,8 @@ io.on('connection', socket => {
 
     console.log(data.user);
     console.log(data.userAns);
+
+    gameSession.incrementScore(data);
   })
 
   // Listen for chat message

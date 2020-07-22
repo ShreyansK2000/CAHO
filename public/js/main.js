@@ -9,10 +9,16 @@ const chooseAnswerButton = document.getElementById('choose-button');
 // const leaveButton = document.getElementById();
 
 /* Logic for the leaderboard dialog box (added before socket related stuff) */
-let leaderboardDialog = document.getElementById("responses-dialog");
+let leaderboardDialog = document.getElementById("leaderboard-dialog");
+let responsesDialog = document.getElementById("responses-dialog");
+
 
 leaderboardButton.onclick = function() {
-  leaderboardDialog.style.display = "block";
+  if (document.getElementById('current-czar').textContent) {
+    leaderboardDialog.style.display = "block";
+  } else {
+    alert("Game has not yet started, no leaderboard to show")
+  }
 }
 
 window.onclick = function(event) {
@@ -28,7 +34,6 @@ closeButton.onclick = function() {
 
 
 // loadScoreTable();
-loadCollectedResponses();
 const submissionResponses = [];
 
 const socket = io();
@@ -52,6 +57,7 @@ socket.on('roomUsers', ({
 }) => {
   outputRoomNametoDOM(roomID);
   outputUsers(users);
+  loadScoreTable(users);
 });
 
 socket.on('blackCard', ({
@@ -91,7 +97,10 @@ socket.on('newCzar', czarName => {
 socket.on('responsesToBlackCard', collectedResponses => {
   console.log();
 
-  showResponsesDialog(collectedResponses);
+  // showResponsesDialog(collectedResponses);
+  loadCollectedResponses(collectedResponses);
+  responsesDialog.style.display = "block";
+
 });
 
 socket.on('message', (e) => {
@@ -99,6 +108,22 @@ socket.on('message', (e) => {
   outputMessageToDOM(e);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
+
+socket.on('winner', message => {
+  let name = message.split(" ")[0];
+  if (name === username) {
+    let splitArr = message.split(" ");
+    splitArr[0] = "You";
+    let newMessage = splitArr.join(" ");
+    console.log(newMessage);
+  } else {
+    console.log(message);
+  }
+})
+
+socket.on('updateScores', data => loadScoreTable(data));
+
+socket.on()
 
 /* Event listeners for user operations on the game menu */
 checkboxInputArray.forEach((input, index) => {
@@ -212,10 +237,13 @@ chooseAnswerButton.addEventListener('click', (e) => {
   // let winningAnswer = document.querySelector("span[id^=res]")[checkedInputIdx];
   let winnerObj = {
     roomID: roomID,
+    // user: socket.id,
     user: document.querySelectorAll("span[id^=userID]")[checkedInputIdx].textContent,
     userAns: document.querySelectorAll("span[id^=res]")[checkedInputIdx].textContent
   }
   socket.emit('roundWinner', winnerObj)
+
+  responsesDialog.style.display = "none";
 });
 
 /* Helper functions to populate DOMs are required */
@@ -255,7 +283,7 @@ function outputUsers(users) {
 }
 
 function loadScoreTable(userScores) {
-  userScores.sort((a, b) => (a.score > b.score) ? 1 : -1)
+  userScores.sort((a, b) => (a.score < b.score) ? 1 : -1)
   
   const tableBody = document.getElementById("leaderboard-table-body");
   let innerHTMLData = '';
@@ -271,21 +299,21 @@ function loadScoreTable(userScores) {
 
 }
 
-function loadCollectedResponses() {
-  responses = [
-    {userID:"asdadasd", responseArr: ["&reg", "Bsdgsaghbarhbfadsbfbf"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["Adsfsfdasdfhbfdsa", "Bsadfsadfsfd"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-    {userID:"asdadasd", responseArr: ["A", "B"]},
-  ]
+function loadCollectedResponses(responses) {
+  // responses = [
+  //   {userID:"asdadasd", responseArr: ["&reg", "Bsdgsaghbarhbfadsbfbf"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["Adsfsfdasdfhbfdsa", "Bsadfsadfsfd"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  //   {userID:"asdadasd", responseArr: ["A", "B"]},
+  // ]
 
   const tableBody = document.getElementById("responses-table-body");
   let innerHTMLData = '';

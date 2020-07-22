@@ -58,7 +58,8 @@ function createUser (id, username, roomID) {
   return {
     id,
     username,
-    roomID
+    roomID,
+    score: 0
   }
 }
 
