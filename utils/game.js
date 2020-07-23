@@ -15,11 +15,6 @@ const gameState = {
 const jsondata = require('./card_info.json');
 
 const reqCards = 10;
-const maxBlackCards = jsondata.blackCards.length;
-const maxWhiteCards = jsondata.whiteCards.length;
-console.log(maxBlackCards)
-console.log(maxWhiteCards)
-
 function getRandomIndex(max) {
   return Math.floor(Math.random() * (max + 1));
 }
