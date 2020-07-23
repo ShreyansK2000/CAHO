@@ -236,6 +236,11 @@
   outline: none;
 }
 
+.user-cards {
+  height: 300px;
+  overflow-y: auto;
+}
+
 #user-cards-table {
   margin: auto;
   margin-bottom: 20px;

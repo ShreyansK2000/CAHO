@@ -12,11 +12,13 @@ const gameState = {
   CYCLE_CZAR: 'cycle-czar',
   END_GAME: 'end-game'
 }
-const jsondata = require('./test.json');
-// const { json } = require('body-parser');
+const jsondata = require('./card_info.json');
 
 const reqCards = 10;
+const maxBlackCards = jsondata.blackCards.length;
 const maxWhiteCards = jsondata.whiteCards.length;
+console.log(maxBlackCards)
+console.log(maxWhiteCards)
 
 function getRandomIndex(max) {
   return Math.floor(Math.random() * (max + 1));
@@ -40,7 +42,14 @@ class Game {
 
     this.currentRoundAnswers = [];
 
+    this.enabledPacks = ["Base", "CAHe1", "CAHe2", "CAHe3", "CAHe4", "CAHe5", "CAHe6"];
+    this.maxBlackCards = 0;
+    this.maxWhiteCards = 0;
+    
     this.responsesEmitter = new EventEmitter();
+
+    this.gamePrompts = [];
+    this.gameResponses = [];
 
     this.submitListener = function() {
 
@@ -65,19 +74,24 @@ class Game {
    * @param {string} roomID 
    */
   addServerRef() {
-    this.emitBlackCard(jsondata.blackCards[13]);
-    this.dealWhiteCards();
     this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
-    // this.setNewCzar(this.currentCzar);
-    // this.attachSubmissionListeners();
+    this.enabledPacks.forEach(packID => {
+      this.gamePrompts = this.gamePrompts.concat(jsondata[packID].black);
+      this.gameResponses = this.gameResponses.concat(jsondata[packID].white);
+    }, this);
+    this.emitBlackCard();
+    this.dealWhiteCards();
   }
 
   /**
    * Change the text for the black card
    * @param {string} text 
    */
-  emitBlackCard(text) {
-    this.ioRef.to(this.room.roomID).emit('blackCard', text);
+  emitBlackCard() {
+    console.log(this.gamePrompts.length);
+    let newBlackCardIdx = this.gamePrompts[getRandomIndex(this.gamePrompts.length - 1)];
+    console.log(newBlackCardIdx);
+    this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[newBlackCardIdx]);
   }
 
   dealWhiteCards() {
@@ -92,7 +106,7 @@ class Game {
             let whiteCardIndices = [];
             
             for (let i = 0; i < cardsToDeal; i++) {
-              whiteCardIndices.push(getRandomIndex(maxWhiteCards - 1));
+              whiteCardIndices.push(this.gameResponses[getRandomIndex(this.gameResponses.length - 1)]);
             }
 
             let whiteCardsToSend = whiteCardIndices.map(index => jsondata.whiteCards[index]);
