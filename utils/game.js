@@ -179,6 +179,7 @@ class Game {
   updateLocalScores() {
     this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
     this.setNewCzar();
+    this.emitBlackCard()
   }
 }
 
