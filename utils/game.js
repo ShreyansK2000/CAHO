@@ -49,11 +49,9 @@ class Game {
     this.submitListener = function() {
 
       let czarID = this.room.roomUsers.find(user => user.username === this.currentCzar).id;
-      console.log(czarID)
       this.ioRef.in(czarID).clients((err, clients) => {
         if (clients.length > 0 && err == null) {
           this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
-          this.dealWhiteCards();
           this.currentRoundAnswers = [];
         }
       });
@@ -68,28 +66,69 @@ class Game {
    * @param {socketIO Object} io 
    * @param {string} roomID 
    */
-  addServerRef() {
-    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+  gameStart() {
+    this.gameState = gameState.PRE_START;
+    
     this.enabledPacks.forEach(packID => {
       this.gamePrompts = this.gamePrompts.concat(jsondata[packID].black);
       this.gameResponses = this.gameResponses.concat(jsondata[packID].white);
     }, this);
-    this.emitBlackCard();
+
     this.dealWhiteCards();
+    this.emitBlackCard();
+    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+    
+    this.gameState = gameState.AWAIT_RESPONSES;
   }
 
-  /**
-   * Change the text for the black card
-   * @param {string} text 
-   */
-  emitBlackCard() {
-    console.log(this.gamePrompts.length);
-    let newBlackCardIdx = this.gamePrompts[getRandomIndex(this.gamePrompts.length - 1)];
-    console.log(newBlackCardIdx);
-    this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[newBlackCardIdx]);
+  async waitResponses () {
+    let promise = new Promise((resolve) => {
+           
+      setTimeout(() => {
+        this.responsesEmitter.on('allResponsesReceived', () => {
+          console.log('resolved inside timout block');
+          resolve();
+        })
+      }, 60000);
+
+    });
+
+    await promise;
+    return;
+  }
+
+  async gatherResponses (userID, responseArr) {
+    this.currentRoundAnswers.forEach(response => {
+      // Should never proc due to front-end block but just in case
+      if (response.userID === userID) {
+        console.log('Response from the same user, will not add to responses');
+        return;
+      }
+    });
+
+    this.currentRoundAnswers.push({
+      userID, 
+      responseArr
+    });
+
+    this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
+     this.responsesEmitter.emit('allResponsesReceived') : await this.waitResponses();
+
+    
+
+  }
+
+  getRoundPlayers (condition) {
+    return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
+  }
+
+  updateLocalScores() {
+    this.gameState = gameState.UPDATE_SCORES;
+    this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
   }
 
   dealWhiteCards() {
+    this.gameState = gameState.DEAL_CARDS;
     if (this.numWhiteCards < reqCards) {
       const cardsToDeal = reqCards - this.numWhiteCards;
       const playersToDeal = this.getRoundPlayers(cardsToDeal == reqCards);
@@ -111,48 +150,19 @@ class Game {
       });
     }
   }
-
-  async waitResponses () {
-    let promise = new Promise((resolve) => {
-      console.log('in the promise')
-           
-      setTimeout(() => {
-        this.responsesEmitter.on('allResponsesReceived', () => {
-          console.log('resolved inside timout block');
-          resolve();
-        })
-      }, 60000);
-
-    });
-
-    await promise;
-    return;
+  
+  /**
+   * Change the text for the black card
+   * @param {string} text 
+   */
+  emitBlackCard() {
+    this.gameState = gameState.SHOW_PROMPT;
+    let newBlackCardIdx = this.gamePrompts[getRandomIndex(this.gamePrompts.length - 1)];
+    this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[newBlackCardIdx]);
   }
 
-  async gatherResponses (userID, responseArr) {
-    this.currentRoundAnswers.push({
-      userID, 
-      responseArr
-    });
-
-    console.log(this.currentRoundAnswers)
-
-    if (this.currentRoundAnswers.length == this.room.roomUsers.length - 1) {
-      this.responsesEmitter.emit('allResponsesReceived');
-      console.log('Emitted resolved, only remaining user');
-    } else {
-      await this.waitResponses();
-      console.log('resolved');
-    }
-    console.log('returning');
-
-  }
-
-  getRoundPlayers (condition) {
-    return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
-  }
-
-  setNewCzar() {
+  cycleCzar() {
+    this.gameState = gameState.CYCLE_CZAR;
     let totalLength = this.room.roomUsers.length;
     let newIdx = this.room.roomUsers.findIndex(user => user.username === this.currentCzar) + 1;
 
@@ -163,7 +173,6 @@ class Game {
     }
 
     this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
-
   }
 
   incrementScore (winnerObj) {
@@ -174,13 +183,14 @@ class Game {
     this.ioRef.to(this.room.roomID).emit('winner', message);
 
     this.updateLocalScores();
+    this.dealWhiteCards();
+    this.emitBlackCard();
+    this.cycleCzar();
+
+    this.gameState = gameState.AWAIT_RESPONSES;
   }
 
-  updateLocalScores() {
-    this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
-    this.setNewCzar();
-    this.emitBlackCard()
-  }
+  
 }
 
 module.exports = {

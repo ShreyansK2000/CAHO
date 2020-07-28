@@ -127,11 +127,16 @@ app.post('/startGame', function (req, res) {
       resString = 'ERR_INVALID_USER';
     } else {
       if (userRoom.roomUsers.length > 1) {
-        resString = 'RES_OK'
-        console.log(userRoom);
-        const newGame = new Game(userRoom, io);
-        gamesInSession.push(newGame);
-        newGame.addServerRef();
+        let sessionIdx = gamesInSession.findIndex(game => game.room.roomID === userRoom.roomID);
+        if (sessionIdx = -1) {
+          resString = 'RES_OK'
+          console.log(userRoom);
+          const newGame = new Game(userRoom, io);
+          gamesInSession.push(newGame);
+          newGame.gameStart();
+        } else {
+          retString = 'ERR_DUP_START_REQ'
+        }
       } else {
         resString = 'ERR_ONLY_PLAYER'
         console.log('not sending cards');

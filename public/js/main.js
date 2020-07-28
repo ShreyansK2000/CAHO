@@ -67,6 +67,9 @@ socket.on('blackCard', ({
   outputBlackCard(text);
   document.getElementById('pick-number').innerText = '' + pick;
   reqPicks = pick;
+  checkboxInputArray.forEach(input => {
+    input.disabled = false;
+  })
 })
 
 socket.on('newWhiteCards', arr => {
@@ -82,16 +85,13 @@ socket.on('newWhiteCards', arr => {
 
 socket.on('newCzar', czarName => {
   curCzarName = czarName;
-  document.getElementById("current-czar").innerText = czarName === username ? 'You' : czarName;
-  if (czarName === username) {
-    checkboxInputArray.forEach(input => {
-      input.disabled = true;
-    });
-  } else {
-    checkboxInputArray.forEach(input => {
-      input.disabled = false;
-    });
-  }
+  let amICzar = czarName === username;
+
+  document.getElementById("current-czar").innerText = amICzar ? 'You' : czarName;
+
+  checkboxInputArray.forEach(input => {
+    input.disabled = amICzar;
+  });
 });
 
 socket.on('responsesToBlackCard', collectedResponses => {
@@ -166,6 +166,7 @@ submitResponsesButton.addEventListener('click', () => {
               cardOptionArray[index].innerHTML = '';
               item.checked = false;
             }
+            item.disabled = true;
             submissionResponses.length = 0;
           });
         } else {
@@ -373,7 +374,7 @@ function getImgTag(index) {
  * @param {string} text 
  */
 function outputBlackCard(text) {
-  res = text.replace('_', '<span style="text-decoration: underline; white-space: pre;">                   </span>')
+  res = text.replace(/_/g, '<span style="text-decoration: underline; white-space: pre;">                   </span>')
   document.getElementById('black-card-text').innerHTML = res;
 }
 
