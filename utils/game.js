@@ -158,6 +158,7 @@ class Game {
   emitBlackCard() {
     this.gameState = gameState.SHOW_PROMPT;
     let newBlackCardIdx = this.gamePrompts[getRandomIndex(this.gamePrompts.length - 1)];
+    this.numWhiteCards = reqCards - jsondata.blackCards[newBlackCardIdx].pick;
     this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[newBlackCardIdx]);
   }
 
@@ -183,8 +184,8 @@ class Game {
     this.ioRef.to(this.room.roomID).emit('winner', message);
 
     this.updateLocalScores();
-    this.dealWhiteCards();
     this.emitBlackCard();
+    this.dealWhiteCards();
     this.cycleCzar();
 
     this.gameState = gameState.AWAIT_RESPONSES;

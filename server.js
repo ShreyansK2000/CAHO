@@ -23,6 +23,7 @@ const botName = 'カホーちゃん';
 // Run when a client connects
 io.on('connection', socket => {
 
+  // TODO add refresh page maintain connection functionality
   socket.on('joinRoom', ({username, roomID}) => {
 
     const user = roomUserUtil.userJoin(roomID, socket.id, username);
@@ -55,6 +56,7 @@ io.on('connection', socket => {
     }
   });
 
+  // TODO add callbacks and error checking
   socket.on('roundWinner', data => {
     gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
     // if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
@@ -72,6 +74,7 @@ io.on('connection', socket => {
   })
 
   // Listen for chat message
+  // TODO add error checking for user presence
   socket.on('chatMessage', (e) => {
     const user = roomUserUtil.getUserByID(socket.id);
     io.to(user.roomID).emit('message', formatMessage(user.username, e));
