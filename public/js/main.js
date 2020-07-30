@@ -144,6 +144,7 @@ checkboxInputArray.forEach((input, index) => {
       }
     }
 
+    showSelectedResponses();
     console.log(submissionResponses);
   });
 });
@@ -345,6 +346,7 @@ function loadCollectedResponses(responses) {
         radioInputCopy.forEach(input => {
           input.checked = false;
         });
+        fillInResponse(responses, index)
       }
     }) 
   });
@@ -374,10 +376,49 @@ function getImgTag(index) {
  * @param {string} text 
  */
 function outputBlackCard(text) {
-  res = text.replace(/_/g, '<span style="text-decoration: underline; white-space: pre;">                   </span>')
+  res = text.replace(/_/g, '<span class="blank">                   </span>')
   document.getElementById('black-card-text').innerHTML = res;
+  document.getElementById('response-black-card-text').innerHTML = res;
+
+  let nonBlanks = document.querySelectorAll("p[class=no-blank]");
+  nonBlanks.forEach(space => space.innerHTML = "");
+
+  let nonBlankResponses = document.querySelectorAll("p[class=no-blank-response]");
+  nonBlankResponses.forEach(space => space.innerHTML = "");
 }
 
 function showResponsesDialog(responsesArr) {
   
+}
+
+function showSelectedResponses () {
+  let blankSpans = document.querySelectorAll("span[class=blank]");
+  if (blankSpans.length !== 0) {
+    blankSpans.forEach((space, idx) => {
+      space.innerHTML = (idx) >= submissionResponses.length ? "                   " : submissionResponses[idx].replace(".", "");
+    });
+  } else {
+    let nonBlankResponses = document.querySelectorAll("p[class=no-blank]");
+    nonBlankResponses.forEach((space, idx) => {
+      space.innerHTML = (idx) >= submissionResponses.length ? "" : submissionResponses[idx].replace(".", "");
+    });
+  }
+}
+
+function fillInResponse (responsesArr, index) {
+  let blankSpansResponses = document.querySelectorAll("#response-black-card-text .blank");
+  if (blankSpansResponses.length !== 0) {
+    blankSpansResponses.forEach((space, idx) => {
+      console.log(responsesArr, responsesArr[index].responseArr[idx]);
+      space.innerHTML = responsesArr[index].responseArr[idx].replace(".", "");
+    });
+  } else {
+    let nonBlankResponses = document.querySelectorAll(".response-black-card-info .no-blank-response");
+    nonBlankResponses.forEach((space, idx) => {
+      console.log(index)
+      console.log(idx);
+      console.log(responsesArr[index].responseArr[idx]);
+      space.innerHTML = idx >= responsesArr[index].responseArr.length ?  "" : responsesArr[index].responseArr[idx].replace(".", "");
+    });
+  }
 }

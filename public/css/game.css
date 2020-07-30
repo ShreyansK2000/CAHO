@@ -115,9 +115,27 @@
   background-color: black;
 }
 
-.black-card-text {
+.black-card-info {
   margin: 20px;
+  height: 500px;
+  overflow: auto;
 }
+
+.response-black-card-info {
+  margin: 15px;
+  height: 350px;
+  overflow: auto;
+}
+
+#response-black-card-text {
+  color: white;
+  font-size: 26px;
+  width: 100%;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+
 
 /* .black-card-text span {
   border-bottom: #fff solid 3px;
@@ -137,6 +155,20 @@
 #black-card-text {
   color: white;
   font-size: 30px;
+  width: 100%;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.no-blank {
+  color: white;
+  font-size: 26px;
+  overflow: hidden;
+}
+
+.no-blank-response {
+  color: white;
+  font-size: 24px;
   overflow: hidden;
 }
 
@@ -262,6 +294,13 @@
 
 #user-cards-table input {
   display: inline;
+}
+
+.blank {
+  display: inline;
+  text-decoration: underline; 
+  /* border-bottom: white 2px solid; */
+  white-space: pre-wrap; 
 }
 
 .modal {
