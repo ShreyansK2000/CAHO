@@ -1,15 +1,20 @@
-let gameExport = require('./game');
-let Game = gameExport.Game;
-
+/*
+ * Global arrays to keep trac of all users and rooms 
+ */
 rooms = [];
 users = [];
+usersToRemove = [];
 
 /**
- * Get randomized roomID, unique due to JS seed properties
+ * Get randomized roomID string
  */
 var roomID = function () {
   return '' + Math.random().toString(36).substr(2, 8);
 };
+
+var userCacheID = function () {
+  return '' + Math.random().toString(36).substr(5, 15);
+}
 
 /**
  * Create and push a new room object
@@ -54,12 +59,14 @@ function removeRoom(roomID) {
  * @param {string} username 
  * @param {string} roomID 
  */
-function createUser (id, username, roomID) {
+function createUser(id, username, roomID) {
   return {
     id,
     username,
     roomID,
-    score: 0
+    score: 0,
+    userCacheID: userCacheID(),
+    online: true
   }
 }
 
@@ -92,7 +99,32 @@ function getRoomUsers(roomID) {
   }
 }
 
-function userJoin (roomID, id, username) {
+function checkCacheID(id, userCacheID) {
+  if (!userCacheID) {
+    return undefined;
+  }
+
+  const userIdx = usersToRemove.findIndex(userToRemove => userToRemove.user.userCacheID === userCacheID);
+
+  if (userIdx !== -1) {
+    let user = usersToRemove[userIdx].user;
+    user.id = id;
+    user.online = true;
+
+    const room = rooms.find(room => room.roomID === user.roomID);
+
+    if (room !== undefined) {
+      room.roomUsers.push(user);
+      users.push(user);
+      return user;
+
+    }
+  }
+
+  return undefined;
+}
+
+function userJoin(roomID, id, username) {
   const room = rooms.find(room => room.roomID === roomID);
 
   if (room !== undefined) {
@@ -105,21 +137,37 @@ function userJoin (roomID, id, username) {
   }
 }
 
-function userLeave (id) {
+function userLeave(id) {
   const index = users.findIndex(user => user.id === id);
 
   if (index !== -1) {
     const userRoom = rooms.find(room => room.roomID === users[index].roomID);
     const roomsIndex = userRoom.roomUsers.findIndex(user => user.id === id);
-      if (roomsIndex != -1) {
-        userRoom.roomUsers.splice(roomsIndex, 1);
-        if (userRoom.roomUsers.length === 0) {
-          rooms.splice(rooms.indexOf(userRoom), 1);
-        }
+    if (roomsIndex != -1) {
+      userRoom.roomUsers.splice(roomsIndex, 1);
+      if (userRoom.roomUsers.length === 0) {
+        rooms.splice(rooms.indexOf(userRoom), 1);
       }
+    }
+
+    user = users[index];
+    user.online = false;
+    usersToRemove.push({
+      user: user,
+      leaveTime: Date.now()
+    });
 
     return users.splice(index, 1)[0];
   }
+}
+
+function startUserCleanInterval() {
+  setInterval(function() {
+    var time = Date.now();
+    usersToRemove = usersToRemove.filter(function(item) {
+       return time < item.leaveTime + (2 * 1000 * 60);
+    }); 
+  }, 5000);
 }
 
 module.exports = {
@@ -132,6 +180,8 @@ module.exports = {
   getAllRooms,
   getRoomByID,
   getRoomUsers,
+  checkCacheID,
   userJoin,
-  userLeave
+  userLeave,
+  startUserCleanInterval
 }

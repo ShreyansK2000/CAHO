@@ -14,7 +14,9 @@ The socket ID of the user is used as the primary identification for client-serve
 
 The game's state machine is simple, please see below. It doesn't currently contain an 'end game' state since Cards Against Humanity&reg; can go on perpetually; ideally players would choose a stopping point and have a look at the leaderboard as required.
 
-![CAHO game session state machine](./CAHO-State-Machine.png)
+<p align="center">
+  <img src="./CAHO-State-Machine.png" alt="CAHO game session state machine">
+</p>
 
 Currently, the game only supports the Base game and the 6 expansions. For now this is hard coded, but an upcoming feature would allow users to turn certain expansions on and off, including several packs beyond the original 6 expansions.
 

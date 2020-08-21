@@ -9,7 +9,7 @@ const socketio = require('socket.io');
 const formatMessage = require('./utils/messages');
 const roomUserUtil = require('./utils/roomUserUtil');
 const { gamesInSession, Game, gameState } = require('./utils/game');
-const game = require('./utils/game');
+const e = require('express');
 
 /* initialization */
 const app = express();
@@ -20,28 +20,45 @@ const io = socketio(server);
 
 const botName = 'カホーちゃん';
 
+roomUserUtil.startUserCleanInterval();
+
 // Run when a client connects
 io.on('connection', socket => {
 
   // TODO add refresh page maintain connection functionality
-  socket.on('joinRoom', ({username, roomID}) => {
+  // TODO error checking when a user leaves, especially current czar case
+  socket.on('joinRoom', ({username, roomID, userCacheID}, callback) => {
 
-    const user = roomUserUtil.userJoin(roomID, socket.id, username);
+    let user = roomUserUtil.checkCacheID(socket.id, userCacheID);
+    let welcomeMsg, broadcastMsg;
+
+    if (!user) {
+      user = roomUserUtil.userJoin(roomID, socket.id, username);
+      welcomeMsg = `Welcome to Cards Against Humanity Online. This room is hosted by ${roomUserUtil.getRoomByID(user.roomID).creatingUser}.`;
+      broadcastMsg = `${user.username} has joined the chat.`;
+    } else {
+      welcomeMsg = `Welcome back ${user.username}!`;
+      broadcastMsg = `${user.username} has rejoined the room.`;
+    }
+
     if (user) {
+      console.log(user.userCacheID);
       socket.join(user.roomID);
       // user.socket = socket;
 
       // Welcome current user
-      socket.emit('message', formatMessage(botName, 
-        `Welcome to Cards Against Humanity Online. This room is hosted by ${roomUserUtil.getRoomByID(user.roomID).creatingUser}.`));
+      socket.emit('message', formatMessage(botName, welcomeMsg));
 
       // Notify other users
-      socket.broadcast.to(user.roomID).emit('message', formatMessage(botName, `${user.username} has joined the chat`));
+      socket.broadcast.to(user.roomID).emit('message', formatMessage(botName, broadcastMsg));
     
+      // Update user list on clients' pages
       io.to(user.roomID).emit('roomUsers', {
         roomID: user.roomID,
         users: roomUserUtil.getRoomUsers(user.roomID)
       });
+
+      callback(user.userCacheID);
     }
   })
   
@@ -83,6 +100,7 @@ io.on('connection', socket => {
   // User connection breaks or close window/tab
   socket.on('disconnect', () => {
     const user = roomUserUtil.userLeave(socket.id);
+    
     if (user) {
       io.to(user.roomID).emit('message', formatMessage(botName, `${user.username} has left the room`));
       io.to(user.roomID).emit('roomUsers', {

@@ -46,9 +46,21 @@ const { username, roomID } = Qs.parse(location.search, {
 
 /* socket events */
 
+let userCacheID = window.sessionStorage.getItem('userCacheID');
+console.log('oldUserCacheID', userCacheID);
+
 socket.emit('joinRoom', {
   username,
-  roomID
+  roomID,
+  userCacheID
+}, function (responsedata) {
+    console.log(responsedata);
+    if (responsedata) {
+      window.sessionStorage.setItem('userCacheID', responsedata);
+      console.log('afterstoring', window.sessionStorage.getItem('userCacheID'));
+    } else {
+      alert('Apologies, an unknown error occurred. Please try and submit again');
+    }
 });
 
 socket.on('roomUsers', ({
@@ -304,16 +316,6 @@ function loadScoreTable(userScores) {
 function loadCollectedResponses(responses) {
   // responses = [
   //   {userID:"asdadasd", responseArr: ["&reg", "Bsdgsaghbarhbfadsbfbf"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["Adsfsfdasdfhbfdsa", "Bsadfsadfsfd"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
-  //   {userID:"asdadasd", responseArr: ["A", "B"]},
   //   {userID:"asdadasd", responseArr: ["A", "B"]},
   // ]
 
