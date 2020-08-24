@@ -154,13 +154,9 @@ class Game {
   }
 
   async checkEventTrigger(isPrivateCall) {
-    if (isPrivateCall) {
       this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
-      this.responsesEmitter.emit('allResponsesReceived') : await this.waitResponses();
-    } else {
-      this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
-      this.responsesEmitter.emit('allResponsesReceived') : console.log('continue normal operation');
-    }
+      this.responsesEmitter.emit('allResponsesReceived') : isPrivateCall ? 
+      await this.waitResponses() : console.log('continue normal operation');
   }
 
   /**
@@ -283,7 +279,7 @@ class Game {
   startCzarTimer() {
     console.log('czar has disconnected, starting timer');
     // TODO use setTimeout and clearTimeout to cycle to next czar after a 10 second interval
-    
+
   }
 }
 
