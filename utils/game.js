@@ -43,6 +43,7 @@ class Game {
 
     this.reqCards = 10;
     this.numWhiteCards = 0;
+    this.blackCardIdx = null;
 
     this.enabledPacks = ["Base", "CAHe1", "CAHe2", "CAHe3", "CAHe4", "CAHe5", "CAHe6"];
     
@@ -82,9 +83,15 @@ class Game {
       this.gameResponses = this.gameResponses.concat(jsondata[packID].white);
     }, this);
 
+    for(var i = 0, value = -1, size = 10, cardIndices = new Array(10); i < size; i++) cardIndices[i] = value;
+    // console.log(cardIndices);
+    this.room.roomUsers.forEach(user => {
+      user.cardIndices = [...cardIndices];
+      // console.log(user.cardIndices);
+    })
     this.dealWhiteCards();
     this.emitBlackCard();
-    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+    this.ioRef.to(this.room.roomID).emit('currentCzar', this.currentCzar);
     
     this.gameState = gameState.AWAIT_RESPONSES;
   }
@@ -113,9 +120,9 @@ class Game {
    * Collect the user's specific response and resolve any waiting users 
    * after final user submits a response
    * @param {string} userID 
-   * @param {string[]} responseArr 
+   * @param {string[]} responseArr
    */
-  async gatherResponses (userID, responseArr) {
+  async gatherResponses (userID, responseArr, responseIndices) {
 
     this.currentRoundAnswers.forEach(response => {
       // Should never proc due to front-end block but just in case
@@ -130,9 +137,30 @@ class Game {
       responseArr
     });
 
-    this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
-     this.responsesEmitter.emit('allResponsesReceived') : await this.waitResponses();
+    let userIdx = this.room.roomUsers.findIndex(user => user.id === userID);
+    if (userIdx !== -1) {
+      responseIndices.forEach(indexValue => {
+        // console.log(indexValue);
+        // console.log(this.room.roomUsers[userIdx].cardIndices[indexValue]);
+        this.room.roomUsers[userIdx].cardIndices[indexValue] = -1;
+        // console.log(this.room.roomUsers[userIdx].cardIndices[indexValue]);
+      })
+    }
 
+    this.checkEventTrigger(true)
+    // this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
+    // this.responsesEmitter.emit('allResponsesReceived') : await this.waitResponses();
+
+  }
+
+  async checkEventTrigger(isPrivateCall) {
+    if (isPrivateCall) {
+      this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
+      this.responsesEmitter.emit('allResponsesReceived') : await this.waitResponses();
+    } else {
+      this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
+      this.responsesEmitter.emit('allResponsesReceived') : console.log('continue normal operation');
+    }
   }
 
   /**
@@ -157,14 +185,20 @@ class Game {
         let id = player.id;
         this.ioRef.in(id).clients((err, clients) => {
           if (clients.length > 0 && err == null) {
-            let whiteCardIndices = [];
-            
-            for (let i = 0; i < cardsToDeal; i++) {
-              whiteCardIndices.push(this.gameResponses[this.getRandomIndex(this.gameResponses.length - 1)]);
+
+            while (player.cardIndices.includes(-1)) {
+              let randIdx = this.gameResponses[this.getRandomIndex(this.gameResponses.length - 1)];
+              if (player.cardIndices.includes(randIdx) || !jsondata.whiteCards[randIdx]) {
+                continue;
+              } else {
+                let replaceIdx = player.cardIndices.indexOf(-1);
+                if (replaceIdx !== -1) {
+                  player.cardIndices[replaceIdx] = randIdx;
+                }
+              }
             }
 
-            let whiteCardsToSend = whiteCardIndices.map(index => jsondata.whiteCards[index]);
-            this.ioRef.to(id).emit('newWhiteCards', whiteCardsToSend);
+            this.ioRef.to(id).emit('whiteCards', player.cardIndices.map(index => jsondata.whiteCards[index]));
           }
         });
       });
@@ -176,9 +210,9 @@ class Game {
    */
   emitBlackCard() {
     this.gameState = gameState.SHOW_PROMPT;
-    let newBlackCardIdx = this.gamePrompts[this.getRandomIndex(this.gamePrompts.length - 1)];
-    this.numWhiteCards = this.reqCards - jsondata.blackCards[newBlackCardIdx].pick;
-    this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[newBlackCardIdx]);
+    this.blackCardIdx = this.gamePrompts[this.getRandomIndex(this.gamePrompts.length - 1)];
+    this.numWhiteCards = this.reqCards - jsondata.blackCards[this.blackCardIdx].pick;
+    this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[this.blackCardIdx]);
   }
 
   /**
@@ -195,7 +229,7 @@ class Game {
       this.currentCzar = this.room.roomUsers[0].username;
     }
 
-    this.ioRef.to(this.room.roomID).emit('newCzar', this.currentCzar);
+    this.ioRef.to(this.room.roomID).emit('currentCzar', this.currentCzar);
   }
 
   /**
@@ -218,6 +252,18 @@ class Game {
     this.gameState = gameState.AWAIT_RESPONSES;
   }
 
+  restoreUser(id) {
+    const userIdx = this.room.roomUsers.findIndex(user => user.id === id);
+
+    if (userIdx !== -1) {
+      const user = this.room.roomUsers[userIdx];
+      
+      this.ioRef.to(user.id).emit('whiteCards', user.cardIndices.map(index => jsondata.whiteCards[index]));
+      this.ioRef.to(user.id).emit('blackCard', jsondata.blackCards[this.blackCardIdx]);
+      this.ioRef.to(user.id).emit('currentCzar', this.currentCzar);
+    }
+  }
+
   /**
    * Utility for selecting a bounded random index
    * @param {int} max 
@@ -232,6 +278,12 @@ class Game {
    */
   getRoundPlayers (condition) {
     return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
+  }
+
+  startCzarTimer() {
+    console.log('czar has disconnected, starting timer');
+    // TODO use setTimeout and clearTimeout to cycle to next czar after a 10 second interval
+    
   }
 }
 

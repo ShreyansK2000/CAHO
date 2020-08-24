@@ -30,7 +30,7 @@ joinButton.addEventListener('click', e => {
     })
     .then(res => res.text())
     .then(text => {
-      if (text !== 'ERR') {
+      if (text.substring(0,3) !== 'ERR') {
         window.location.href = "game.html?"+text;
       } else {
         alert('Apologies, there was an unexpected error, please try again later')

@@ -35,6 +35,7 @@ closeButton.onclick = function() {
 
 // loadScoreTable();
 const submissionResponses = [];
+const submissionCardIndices = [];
 
 const socket = io();
 let reqPicks = 0;
@@ -44,8 +45,14 @@ const { username, roomID } = Qs.parse(location.search, {
   ignoreQueryPrefix: true
 });
 
+// window.addEventListener('beforeunload', function (e) {
+//   let cardOptionTextArray = cardOptionArray.map(span => span.innerHTML);
+// });
+
 /* socket events */
 
+// userCacheID helps protect users from breaking funtionality
+// on refreshes or temporary disconnections
 let userCacheID = window.sessionStorage.getItem('userCacheID');
 console.log('oldUserCacheID', userCacheID);
 
@@ -56,6 +63,7 @@ socket.emit('joinRoom', {
 }, function (responsedata) {
     console.log(responsedata);
     if (responsedata) {
+      // responsedata is the userCacheID that both the server and client share
       window.sessionStorage.setItem('userCacheID', responsedata);
       console.log('afterstoring', window.sessionStorage.getItem('userCacheID'));
     } else {
@@ -84,18 +92,18 @@ socket.on('blackCard', ({
   })
 })
 
-socket.on('newWhiteCards', arr => {
+socket.on('whiteCards', arr => {
   console.log(arr);
   let i = 0;
   cardOptionArray.forEach(span => {
-    if (span.innerText === '') {
+    // if (span.innerText === '') {
       span.innerHTML = arr[i];
       i++;
-    }
+    // }
   });
 });
 
-socket.on('newCzar', czarName => {
+socket.on('currentCzar', czarName => {
   curCzarName = czarName;
   let amICzar = czarName === username;
 
@@ -143,6 +151,7 @@ checkboxInputArray.forEach((input, index) => {
     if (this.checked) {
       if (submissionResponses.length < reqPicks) {
         submissionResponses.push(cardOptionArray[index].innerText);
+        submissionCardIndices.push(index);
       } else {
         alert('You cannot pick any more cards.');
         this.checked = false;
@@ -151,6 +160,7 @@ checkboxInputArray.forEach((input, index) => {
       let idx = submissionResponses.indexOf(cardOptionArray[index].innerText);
       if (idx !== -1) {
         submissionResponses.splice(idx, 1);
+        submissionCardIndices.splice(idx, 1);
       } else {
         alert('Apologies, an unknown error has occurred');
       }
@@ -169,6 +179,7 @@ submitResponsesButton.addEventListener('click', () => {
   } else if (submissionResponses.length === reqPicks) {
     socket.emit('submissionResponses', {
         payload: submissionResponses,
+        removeCardIndices: submissionCardIndices,
         roomID: roomID
       },
       function (responsedata) {
@@ -181,6 +192,7 @@ submitResponsesButton.addEventListener('click', () => {
             }
             item.disabled = true;
             submissionResponses.length = 0;
+            submissionCardIndices.length = 0;
           });
         } else {
           alert('Apologies, an unknown error occurred. Please try and submit again');

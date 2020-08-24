@@ -29,16 +29,20 @@ io.on('connection', socket => {
   // TODO error checking when a user leaves, especially current czar case
   socket.on('joinRoom', ({username, roomID, userCacheID}, callback) => {
 
-    let user = roomUserUtil.checkCacheID(socket.id, userCacheID);
-    let welcomeMsg, broadcastMsg;
+    let user = roomUserUtil.checkCacheID(socket.id, username, roomID, userCacheID);
+    let welcomeMsg, broadcastMsg, isCachedUser;
 
     if (!user) {
-      user = roomUserUtil.userJoin(roomID, socket.id, username);
+      console.log(user);
+      user = roomUserUtil.userJoin(socket.id, username, roomID);
+      console.log(user);
       welcomeMsg = `Welcome to Cards Against Humanity Online. This room is hosted by ${roomUserUtil.getRoomByID(user.roomID).creatingUser}.`;
       broadcastMsg = `${user.username} has joined the chat.`;
+      isCachedUser = false;
     } else {
       welcomeMsg = `Welcome back ${user.username}!`;
       broadcastMsg = `${user.username} has rejoined the room.`;
+      isCachedUser = true;
     }
 
     if (user) {
@@ -58,6 +62,12 @@ io.on('connection', socket => {
         users: roomUserUtil.getRoomUsers(user.roomID)
       });
 
+      let gameIdx = gamesInSession.findIndex(game => game.room.roomID === roomID);
+      if (gameIdx !== -1) {
+        if (isCachedUser) {
+          gamesInSession[gameIdx].restoreUser(user.id);
+        }
+      }
       callback(user.userCacheID);
     }
   })
@@ -68,7 +78,7 @@ io.on('connection', socket => {
       callback(false);
     } else {
       callback(data.payload);
-      await gameSession.gatherResponses(socket.id, data.payload);
+      await gameSession.gatherResponses(socket.id, data.payload, data.removeCardIndices);
       // gameSession.dealWhiteCards();
     }
   });
@@ -108,6 +118,14 @@ io.on('connection', socket => {
         users: roomUserUtil.getRoomUsers(user.roomID)
       });
     }
+
+    // TODO if user leaves, event in game to check if still need to wait on responses
+    let gameIdx = gamesInSession.findIndex(game => game.room.roomID === user.roomID);
+    if (gameIdx !== -1) {
+      let roomGame = gamesInSession[gameIdx];
+      roomGame.currentCzar === user.username ? roomGame.startCzarTimer() : roomGame.checkEventTrigger(false);
+    }
+
   });
   
 });

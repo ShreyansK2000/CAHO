@@ -64,6 +64,7 @@ function createUser(id, username, roomID) {
     id,
     username,
     roomID,
+    cardIndices: [],
     score: 0,
     userCacheID: userCacheID(),
     online: true
@@ -99,17 +100,33 @@ function getRoomUsers(roomID) {
   }
 }
 
-function checkCacheID(id, userCacheID) {
+function checkCacheID(id, username, roomID, userCacheID) {
+  if (!username) {
+    return undefined;
+  }
+
+  if (!roomID) {
+    return undefined;
+  }
+  
   if (!userCacheID) {
     return undefined;
   }
+ 
 
   const userIdx = usersToRemove.findIndex(userToRemove => userToRemove.user.userCacheID === userCacheID);
 
   if (userIdx !== -1) {
     let user = usersToRemove[userIdx].user;
+
+    // Same user joined a different room from same tab, or different username with same cache information (somehow)
+    if (user.roomID !== roomID || user.username !== username) {
+      return undefined;
+    }
+
     user.id = id;
     user.online = true;
+    usersToRemove.splice(userIdx, 1);
 
     const room = rooms.find(room => room.roomID === user.roomID);
 
@@ -117,16 +134,16 @@ function checkCacheID(id, userCacheID) {
       room.roomUsers.push(user);
       users.push(user);
       return user;
-
     }
   }
 
+  console.log(usersToRemove);
   return undefined;
 }
 
-function userJoin(roomID, id, username) {
+function userJoin(id, username, roomID) {
   const room = rooms.find(room => room.roomID === roomID);
-
+  console.log(room);
   if (room !== undefined) {
     const user = createUser(id, username, roomID);
     room.roomUsers.push(user);
@@ -144,7 +161,10 @@ function userLeave(id) {
     const userRoom = rooms.find(room => room.roomID === users[index].roomID);
     const roomsIndex = userRoom.roomUsers.findIndex(user => user.id === id);
     if (roomsIndex != -1) {
+      console.log('pre- userRoomlist', userRoom.roomUsers);
+
       userRoom.roomUsers.splice(roomsIndex, 1);
+      console.log('post- userRoomlist', userRoom.roomUsers);
       if (userRoom.roomUsers.length === 0) {
         rooms.splice(rooms.indexOf(userRoom), 1);
       }
@@ -157,7 +177,10 @@ function userLeave(id) {
       leaveTime: Date.now()
     });
 
+    // console.log(usersToRemove);
     return users.splice(index, 1)[0];
+  } else {
+    console.log('No user to remove');
   }
 }
 
