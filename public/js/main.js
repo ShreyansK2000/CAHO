@@ -143,7 +143,9 @@ socket.on('winner', message => {
 
 socket.on('updateScores', data => loadScoreTable(data));
 
-socket.on()
+socket.on('gameStateUpdate', data => {
+  console.log(data);
+})
 
 /* Event listeners for user operations on the game menu */
 checkboxInputArray.forEach((input, index) => {

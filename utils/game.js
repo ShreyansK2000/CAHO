@@ -13,6 +13,7 @@ const gameState = {
   DEAL_CARDS: 'deal-cards',
   SHOW_PROMPT: 'show-prompt',
   AWAIT_RESPONSES: 'await-responses',
+  CZAR_SELECT: 'czar-selecting-responses',
   UPDATE_SCORES: 'update-scores',
   CYCLE_CZAR: 'cycle-czar',
   END_GAME: 'end-game'
@@ -39,7 +40,27 @@ class Game {
     this.room = room;
 
     this.currentCzar = room.creatingUser;
-    this.gameState = gameState.PRE_START;
+
+    this.gameState = {
+      ioRef: this.ioRef,
+      roomID: this.room.roomID,
+      currentStateInternal: gameState.PRE_START,
+      stateListener: function (val) {},
+      set currentState(val) {
+        this.currentStateInternal = val;
+        this.stateListener(val);
+      },
+      get currentState() {
+        return this.currentStateInternal;
+      },
+      registerListener: function (listener) {
+        this.stateListener = listener;
+      }
+    }
+
+    this.gameState.registerListener(function (newState) {
+      this.ioRef.to(this.roomID).emit('gameStateUpdate', newState);
+    });
 
     this.reqCards = 10;
     this.numWhiteCards = 0;
@@ -69,6 +90,7 @@ class Game {
         this.ioRef.in(czarID).clients((err, clients) => {
           if (clients.length > 0 && err == null) {
             this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
+            this.gameState.currentState = gameState.CZAR_SELECT;
             this.currentRoundAnswers = [];
           }
         });
@@ -86,7 +108,7 @@ class Game {
    * Set up which cards to use in game, and start game with initial hand and prompt
    */
   gameStart() {
-    this.gameState = gameState.PRE_START;
+    this.gameState.currentState = gameState.PRE_START;
 
     this.enabledPacks.forEach(packID => {
       this.gamePrompts = this.gamePrompts.concat(jsondata[packID].black);
@@ -103,7 +125,7 @@ class Game {
     this.emitBlackCard();
     this.ioRef.to(this.room.roomID).emit('currentCzar', this.currentCzar);
 
-    this.gameState = gameState.AWAIT_RESPONSES;
+    this.gameState.currentState = gameState.AWAIT_RESPONSES;
   }
 
   /**
@@ -173,7 +195,7 @@ class Game {
    * Emit user and score information to update leaderboard
    */
   updateLocalScores() {
-    this.gameState = gameState.UPDATE_SCORES;
+    this.gameState.currentState = gameState.UPDATE_SCORES;
     this.ioRef.to(this.room.roomID).emit('updateScores', this.room.roomUsers);
   }
 
@@ -182,7 +204,7 @@ class Game {
    * reach the minimum required cards per hand for each hand
    */
   dealWhiteCards() {
-    this.gameState = gameState.DEAL_CARDS;
+    this.gameState.currentState = gameState.DEAL_CARDS;
     if (this.numWhiteCards < this.reqCards) {
       const cardsToDeal = this.reqCards - this.numWhiteCards;
       const playersToDeal = this.getRoundPlayers(cardsToDeal == this.reqCards);
@@ -215,7 +237,7 @@ class Game {
    * Send randomly selected prompt for current round
    */
   emitBlackCard() {
-    this.gameState = gameState.SHOW_PROMPT;
+    this.gameState.currentState = gameState.SHOW_PROMPT;
     this.blackCardIdx = this.gamePrompts[this.getRandomIndex(this.gamePrompts.length - 1)];
     this.numWhiteCards = this.reqCards - jsondata.blackCards[this.blackCardIdx].pick;
     this.ioRef.to(this.room.roomID).emit('blackCard', jsondata.blackCards[this.blackCardIdx]);
@@ -225,7 +247,7 @@ class Game {
    * Update current cards czar, cycle through current room users
    */
   cycleCzar() {
-    this.gameState = gameState.CYCLE_CZAR;
+    this.gameState.currentState = gameState.CYCLE_CZAR;
     let totalLength = this.room.roomUsers.length;
     let newIdx = this.room.roomUsers.findIndex(user => user.username === this.currentCzar) + 1;
 
@@ -255,7 +277,7 @@ class Game {
     this.dealWhiteCards();
     this.cycleCzar();
 
-    this.gameState = gameState.AWAIT_RESPONSES;
+    this.gameState.currentState = gameState.AWAIT_RESPONSES;
   }
 
   restoreUser(id) {

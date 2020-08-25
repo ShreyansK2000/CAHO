@@ -78,7 +78,7 @@ io.on('connection', socket => {
   
   socket.on('submissionResponses', async (data, callback) => {
     gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
-    if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
+    if (!gameSession || gameSession.gameState.currentState != gameState.AWAIT_RESPONSES) {
       callback(false);
     } else {
       callback(data.payload);
@@ -90,7 +90,7 @@ io.on('connection', socket => {
   // TODO add callbacks and error checking
   socket.on('roundWinner', data => {
     gameSession = gamesInSession.find(game => game.room.roomID === data.roomID);
-    // if (!gameSession || gameSession.gameState != gameState.AWAIT_RESPONSES) {
+    // if (!gameSession || gameSession.gameState.currentState != gameState.AWAIT_RESPONSES) {
     //   callback(false);
     // } else {
     //   callback(data.payload);
