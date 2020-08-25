@@ -25,7 +25,9 @@ function createRoom(creatingUser) {
   const room = {
     roomID: roomID(),
     creatingUser: creatingUser,
-    roomUsers: []
+    roomUsers: [],
+    leaveTime: null,
+    empty: false
   };
 
   addRoom(room);
@@ -131,19 +133,23 @@ function checkCacheID(id, username, roomID, userCacheID) {
     const room = rooms.find(room => room.roomID === user.roomID);
 
     if (room !== undefined) {
+      if (room.empty) {
+        room.empty = false;
+        room.leaveTime = null;
+      }
       room.roomUsers.push(user);
       users.push(user);
       return user;
     }
   }
 
-  console.log(usersToRemove);
+  // console.log(usersToRemove);
   return undefined;
 }
 
 function userJoin(id, username, roomID) {
   const room = rooms.find(room => room.roomID === roomID);
-  console.log(room);
+  // console.log(room);
   if (room !== undefined) {
     const user = createUser(id, username, roomID);
     room.roomUsers.push(user);
@@ -157,16 +163,15 @@ function userJoin(id, username, roomID) {
 function userLeave(id) {
   const index = users.findIndex(user => user.id === id);
 
+  console.log('userleaverooms', rooms);
   if (index !== -1) {
     const userRoom = rooms.find(room => room.roomID === users[index].roomID);
-    const roomsIndex = userRoom.roomUsers.findIndex(user => user.id === id);
-    if (roomsIndex != -1) {
-      console.log('pre- userRoomlist', userRoom.roomUsers);
-
-      userRoom.roomUsers.splice(roomsIndex, 1);
-      console.log('post- userRoomlist', userRoom.roomUsers);
+    const roomUserIndex = userRoom.roomUsers.findIndex(user => user.id === id);
+    if (roomUserIndex != -1) {
+      userRoom.roomUsers.splice(roomUserIndex, 1);
       if (userRoom.roomUsers.length === 0) {
-        rooms.splice(rooms.indexOf(userRoom), 1);
+        userRoom.leaveTime = Date.now();
+        userRoom.empty = true;
       }
     }
 
@@ -186,11 +191,22 @@ function userLeave(id) {
 
 function startUserCleanInterval() {
   setInterval(function() {
-    var time = Date.now();
-    usersToRemove = usersToRemove.filter(function(item) {
-       return time < item.leaveTime + (2 * 1000 * 60);
+    let time = Date.now();
+    usersToRemove = usersToRemove.filter(function(user) {
+       return time < user.leaveTime + (20 * 1000);
     }); 
-  }, 5000);
+
+    rooms = rooms.filter(function(room) {
+      // if (room.empty) {
+      //   let expiry = ;
+      //   return time <= expiry;
+      // } else {
+      //   return true;
+      // }
+
+      return room.empty ? time <= room.leaveTime + 20000 : true;
+    })
+  }, 10000);
 }
 
 module.exports = {
