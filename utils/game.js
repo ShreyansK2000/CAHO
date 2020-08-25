@@ -46,30 +46,40 @@ class Game {
     this.blackCardIdx = null;
 
     this.enabledPacks = ["Base", "CAHe1", "CAHe2", "CAHe3", "CAHe4", "CAHe5", "CAHe6"];
-    
+
     // Set up array objects to track various card information
     this.gamePrompts = [];
     this.gameResponses = [];
     this.currentRoundAnswers = [];
 
+    this.czarDisconnectTimeout = null;
+
     /*
      * Set up callback function after all users other than the 
      * card czar have submitted a response, send array to czar
      */
-    this.submitListener = function() {
+    this.submitListener = function () {
 
-      let czarID = this.room.roomUsers.find(user => user.username === this.currentCzar).id;
-      this.ioRef.in(czarID).clients((err, clients) => {
-        if (clients.length > 0 && err == null) {
-          this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
-          this.currentRoundAnswers = [];
-        }
-      });
+      let czarUser = this.room.roomUsers.find(user => user.username === this.currentCzar);
+      if (!czarUser) {
+        this.startCzarTimer();
+        return;
+      } else {
+        let czarID = czarUser.id;
+        this.ioRef.in(czarID).clients((err, clients) => {
+          if (clients.length > 0 && err == null) {
+            this.ioRef.to(czarID).emit('responsesToBlackCard', this.currentRoundAnswers);
+            this.currentRoundAnswers = [];
+          }
+        });
+      }
     }
 
     // Event emitter to start submission callback after collecting all responses
     this.responsesEmitter = new EventEmitter();
     this.responsesEmitter.addListener('allResponsesReceived', this.submitListener.bind(this));
+
+    // TODO add gameState event listener to self so a gameState monitor can be implemented client side
   }
 
   /**
@@ -77,13 +87,13 @@ class Game {
    */
   gameStart() {
     this.gameState = gameState.PRE_START;
-    
+
     this.enabledPacks.forEach(packID => {
       this.gamePrompts = this.gamePrompts.concat(jsondata[packID].black);
       this.gameResponses = this.gameResponses.concat(jsondata[packID].white);
     }, this);
 
-    for(var i = 0, value = -1, size = 10, cardIndices = new Array(10); i < size; i++) cardIndices[i] = value;
+    for (var i = 0, value = -1, size = 10, cardIndices = new Array(10); i < size; i++) cardIndices[i] = value;
     // console.log(cardIndices);
     this.room.roomUsers.forEach(user => {
       user.cardIndices = [...cardIndices];
@@ -92,7 +102,7 @@ class Game {
     this.dealWhiteCards();
     this.emitBlackCard();
     this.ioRef.to(this.room.roomID).emit('currentCzar', this.currentCzar);
-    
+
     this.gameState = gameState.AWAIT_RESPONSES;
   }
 
@@ -100,9 +110,9 @@ class Game {
    * Set up a promise for each user submission that resolves when the last
    * remaining user submits a response card
    */
-  async waitResponses () {
+  async waitResponses() {
     let promise = new Promise((resolve) => {
-           
+
       setTimeout(() => {
         this.responsesEmitter.on('allResponsesReceived', () => {
           console.log('resolved inside timout block');
@@ -122,7 +132,7 @@ class Game {
    * @param {string} userID 
    * @param {string[]} responseArr
    */
-  async gatherResponses (userID, responseArr, responseIndices) {
+  async gatherResponses(userID, responseArr, responseIndices) {
 
     this.currentRoundAnswers.forEach(response => {
       // Should never proc due to front-end block but just in case
@@ -133,7 +143,7 @@ class Game {
     });
 
     this.currentRoundAnswers.push({
-      userID, 
+      userID,
       responseArr
     });
 
@@ -154,8 +164,8 @@ class Game {
   }
 
   async checkEventTrigger(isPrivateCall) {
-      this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
-      this.responsesEmitter.emit('allResponsesReceived') : isPrivateCall ? 
+    this.currentRoundAnswers.length == this.room.roomUsers.length - 1 ?
+      this.responsesEmitter.emit('allResponsesReceived') : isPrivateCall ?
       await this.waitResponses() : console.log('continue normal operation');
   }
 
@@ -200,7 +210,7 @@ class Game {
       });
     }
   }
-  
+
   /**
    * Send randomly selected prompt for current round
    */
@@ -233,7 +243,7 @@ class Game {
    * Operate state machine past the first round
    * @param {Object} winnerObj 
    */
-  incrementScore (winnerObj) {
+  incrementScore(winnerObj) {
     let user = this.room.roomUsers.find(user => user.id === winnerObj.user)
     user.score++;
 
@@ -253,7 +263,7 @@ class Game {
 
     if (userIdx !== -1) {
       const user = this.room.roomUsers[userIdx];
-      
+
       this.ioRef.to(user.id).emit('whiteCards', user.cardIndices.map(index => jsondata.whiteCards[index]));
       this.ioRef.to(user.id).emit('blackCard', jsondata.blackCards[this.blackCardIdx]);
       this.ioRef.to(user.id).emit('currentCzar', this.currentCzar);
@@ -272,14 +282,32 @@ class Game {
    * Utility for selecting room users correctly
    * @param {boolean} condition 
    */
-  getRoundPlayers (condition) {
+  getRoundPlayers(condition) {
     return condition ? this.room.roomUsers : this.room.roomUsers.filter(user => user.username != this.currentCzar);
   }
 
   startCzarTimer() {
     console.log('czar has disconnected, starting timer');
     // TODO use setTimeout and clearTimeout to cycle to next czar after a 10 second interval
+    this.czarDisconnectTimeout = setTimeout(this.handleCzarDisconnect, 10 * 1000);
+  }
 
+  stopCzarTimer() {
+    if (this.czarDisconnectTimeout) {
+      clearTimeout(this.czarDisconnectTimeout);
+      this.handleCzarReconnect();
+      this.czarDisconnectTimeout = null;
+    }
+  }
+
+  handleCzarDisconnect() {
+    console.log('timeout worked, update remaining player info');
+    // TODO switch to next player in user list. return previous cards if possible
+  }
+
+  handleCzarReconnect() {
+    console.log('czar reconnected before timeout, see if submissions can be shown');
+    // TODO handle a czar rejoining (show submissions etc.)
   }
 }
 

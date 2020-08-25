@@ -65,7 +65,11 @@ io.on('connection', socket => {
       let gameIdx = gamesInSession.findIndex(game => game.room.roomID === roomID);
       if (gameIdx !== -1) {
         if (isCachedUser) {
-          gamesInSession[gameIdx].restoreUser(user.id);
+          let gameSession = gamesInSession[gameIdx];
+          gameSession.restoreUser(user.id);
+          if(gameSession.currentCzar === user.username) {
+            gameSession.stopCzarTimer();
+          } 
         }
       }
       callback(user.userCacheID);
